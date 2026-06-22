@@ -1,0 +1,12 @@
+{
+  "name": "zkteco-middleware",
+  "version": "1.0.0",
+  "description": "Node.js integration middleware for ZKTeco devices",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "node-zklib": "*"
+  }
+}
