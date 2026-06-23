@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 22, 2026 at 09:55 AM
+-- Generation Time: Jun 23, 2026 at 10:35 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -44,8 +44,8 @@ CREATE TABLE `attendance_policies` (
 --
 
 INSERT INTO `attendance_policies` (`id`, `name`, `description`, `late_arrival_grace`, `early_departure_grace`, `overtime_rate_per_hour`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'Strict Office Policy', 'Zero tolerance policy with standard overtime.', 0, 0, 1.50, 'Active', '2026-06-02 14:26:50', '2026-06-02 14:26:50'),
-(2, 'Flexible Remote Policy', 'Allows 15 min buffer on both ends.', 15, 15, 1.00, 'Active', '2026-06-02 14:26:50', '2026-06-04 15:11:19');
+(1, 'Strict Office Policy', 'Zero tolerance policy with standard overtime.', 0, 0, 2.00, 'Active', '2026-06-02 14:26:50', '2026-06-23 06:59:30'),
+(2, 'Flexible Remote Policy', 'Allows 15 min buffer on both ends.', 15, 15, 1.50, 'Active', '2026-06-02 14:26:50', '2026-06-23 06:50:54');
 
 -- --------------------------------------------------------
 
@@ -118,7 +118,7 @@ INSERT INTO `attendance_records` (`id`, `employee_id`, `shift_id`, `attendance_p
 (123, 5, 1, 1, '2026-06-15', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:29:02', '2026-06-22 07:29:02'),
 (124, 5, 1, 1, '2026-06-16', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:29:02', '2026-06-22 07:29:02'),
 (125, 5, 1, 1, '2026-06-19', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:29:02', '2026-06-22 07:29:02'),
-(126, 5, 1, 1, '2026-06-22', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:29:02', '2026-06-22 07:29:02'),
+(126, 5, 1, 1, '2026-06-22', '2026-06-22 13:55:58', NULL, 0.00, 0.00, 0.00, 0.00, 1, 0, 1, 0, 0, 'Present', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:29:02', '2026-06-22 08:26:10'),
 (127, 8, 1, 1, '2026-06-02', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:29:02', '2026-06-22 07:29:02'),
 (128, 8, 1, 1, '2026-06-03', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:29:02', '2026-06-22 07:29:02'),
 (129, 8, 1, 1, '2026-06-04', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:29:02', '2026-06-22 07:29:02'),
@@ -147,8 +147,8 @@ INSERT INTO `attendance_records` (`id`, `employee_id`, `shift_id`, `attendance_p
 (152, 9, 1, 1, '2026-06-15', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:29:02', '2026-06-22 07:29:02'),
 (153, 9, 1, 1, '2026-06-16', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:29:02', '2026-06-22 07:29:02'),
 (154, 9, 1, 1, '2026-06-17', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:29:02', '2026-06-22 07:29:02'),
-(155, 9, 1, 1, '2026-06-19', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:29:02', '2026-06-22 07:29:02'),
-(156, 9, 1, 1, '2026-06-22', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:29:02', '2026-06-22 07:29:02'),
+(155, 9, 1, 1, '2026-06-19', '2026-06-19 09:00:00', '2026-06-19 17:00:00', 8.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Present', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:29:02', '2026-06-22 08:28:48'),
+(156, 9, 1, 1, '2026-06-22', '2026-06-22 13:55:26', NULL, 0.00, 0.00, 0.00, 0.00, 1, 0, 1, 0, 0, 'Present', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:29:02', '2026-06-22 08:25:41'),
 (157, 9, 1, 1, '2026-05-18', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:30:29', '2026-06-22 07:30:29'),
 (158, 9, 1, 1, '2026-05-19', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:30:29', '2026-06-22 07:30:29'),
 (159, 9, 1, 1, '2026-05-20', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:30:29', '2026-06-22 07:30:29'),
@@ -158,7 +158,14 @@ INSERT INTO `attendance_records` (`id`, `employee_id`, `shift_id`, `attendance_p
 (163, 9, 1, 1, '2026-05-26', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:30:29', '2026-06-22 07:30:29'),
 (164, 9, 1, 1, '2026-05-27', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:30:29', '2026-06-22 07:30:29'),
 (165, 9, 1, 1, '2026-05-28', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:30:29', '2026-06-22 07:30:29'),
-(166, 9, 1, 1, '2026-05-29', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:30:29', '2026-06-22 07:30:29');
+(166, 9, 1, 1, '2026-05-29', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-22 07:30:29', '2026-06-22 07:30:29'),
+(173, 1, 1, 2, '2026-06-23', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-23 05:31:32', '2026-06-23 05:31:32'),
+(174, 2, 1, 2, '2026-06-23', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-23 05:31:32', '2026-06-23 05:31:32'),
+(175, 3, 1, 2, '2026-06-23', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-23 05:31:32', '2026-06-23 05:31:32'),
+(176, 4, 1, 1, '2026-06-23', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-23 05:31:32', '2026-06-23 05:31:32'),
+(177, 5, 1, 1, '2026-06-23', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-23 05:31:32', '2026-06-23 05:31:32'),
+(178, 8, 1, 1, '2026-06-23', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-23 05:31:32', '2026-06-23 05:31:32'),
+(179, 9, 1, 1, '2026-06-23', NULL, NULL, 0.00, 0.00, 0.00, 0.00, 0, 0, 1, 0, 0, 'Absent', 'Generated as unpaid absence by payroll engine', '2026-06-23 05:31:32', '2026-06-23 05:31:32');
 
 -- --------------------------------------------------------
 
@@ -182,6 +189,13 @@ CREATE TABLE `attendance_regularizations` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `attendance_regularizations`
+--
+
+INSERT INTO `attendance_regularizations` (`id`, `employee_id`, `attendance_record_id`, `date`, `requested_clock_in`, `requested_clock_out`, `original_clock_in`, `original_clock_out`, `reason`, `status`, `approved_by`, `approved_at`, `created_at`, `updated_at`) VALUES
+(1, 9, 155, '2026-06-19', '2026-06-19 09:00:00', '2026-06-19 17:00:00', NULL, NULL, 'I got leave for Mosque Day', 'Approved', 1, '2026-06-22 04:58:48', '2026-06-22 08:28:40', '2026-06-22 08:28:48');
 
 -- --------------------------------------------------------
 
@@ -354,7 +368,31 @@ INSERT INTO `audit_logs` (`id`, `user_id`, `action`, `details`, `ip_address`, `c
 (149, 1, 'EMPLOYEE_UPDATED', 'EMPLOYEE_UPDATED: EMP-015 (Mike Johnson)', '::1', '2026-06-22 07:28:04'),
 (150, 1, 'PAYROLL_GENERATED', 'Generated payroll for 2026-06', '::1', '2026-06-22 07:29:02'),
 (151, 1, 'PAYROLL_GENERATED', 'Generated payroll for 2026-05', '::1', '2026-06-22 07:30:29'),
-(152, 1, 'PUBLIC_HOLIDAYS_IMPORTED', 'Imported 0 public holidays for LK 2026; skipped 25', '::1', '2026-06-22 07:47:50');
+(152, 1, 'PUBLIC_HOLIDAYS_IMPORTED', 'Imported 0 public holidays for LK 2026; skipped 25', '::1', '2026-06-22 07:47:50'),
+(153, 1, 'LOGIN_SUCCESS', 'User authenticated successfully via Web Portal.', '::1', '2026-06-22 08:24:31'),
+(154, 2, 'LOGIN_SUCCESS', 'User authenticated successfully via Web Portal.', '::1', '2026-06-22 08:24:44'),
+(155, 1, 'REGULARIZATION_SUBMITTED', 'Submitted regularization request for Emp #9 on 2026-06-19', '::1', '2026-06-22 08:28:40'),
+(156, 1, 'REGULARIZATION_APPROVED', 'Approved regularization request #1', '::1', '2026-06-22 08:28:48'),
+(157, 1, 'LOGIN_SUCCESS', 'User authenticated successfully via Web Portal.', '::1', '2026-06-23 04:17:01'),
+(158, 1, 'LOGIN_SUCCESS', 'User authenticated successfully via Web Portal.', '::1', '2026-06-23 04:42:44'),
+(159, 1, 'PUBLIC_HOLIDAYS_IMPORTED', 'Imported 0 public holidays for LK 2026; skipped 25', '::1', '2026-06-23 04:51:08'),
+(160, 1, 'PAYROLL_GENERATED', 'Generated payroll for 2026-06', '::1', '2026-06-23 05:31:32'),
+(161, 1, 'PAYROLL_GENERATED', 'Generated payroll for 2026-06', '::1', '2026-06-23 05:52:59'),
+(162, 1, 'PAYROLL_GENERATED', 'Generated payroll for 2026-06', '::1', '2026-06-23 06:09:34'),
+(163, 1, 'LEAVE_BALANCES_GENERATED', 'Generated leave balances for 2026. Affected rows: 42', '::1', '2026-06-23 06:21:11'),
+(164, 1, 'LEAVE_BALANCES_GENERATED', 'Generated leave balances for 2026. Affected rows: 28', '::1', '2026-06-23 06:34:56'),
+(165, 1, 'LEAVE_BALANCES_GENERATED', 'Generated leave balances for 2026. Affected rows: 28', '::1', '2026-06-23 06:34:59'),
+(166, 1, 'SHIFT_CREATED', 'Defined new Time & Attendance Shift: Standard Night Shift', '::1', '2026-06-23 06:45:30'),
+(167, 1, 'ATTENDANCE_ASSIGNMENT', 'Updated Shift & Policy bindings for EMP-005', '::1', '2026-06-23 06:45:49'),
+(168, 1, 'ATTENDANCE_POLICY_UPDATED', 'Updated Attendance Policy: Strict Office Policy', '::1', '2026-06-23 06:59:18'),
+(169, 1, 'ATTENDANCE_POLICY_UPDATED', 'Updated Attendance Policy: Strict Office Policy', '::1', '2026-06-23 06:59:30'),
+(170, 1, 'PAYROLL_GENERATED', 'Generated payroll for 2026-06', '::1', '2026-06-23 06:59:53'),
+(171, 1, 'ATTENDANCE_ASSIGNMENT', 'Updated Shift & Policy bindings for EMP-001', '::1', '2026-06-23 07:00:27'),
+(172, 1, 'PAYROLL_GENERATED', 'Generated payroll for 2026-06', '::1', '2026-06-23 07:00:33'),
+(173, 1, 'EMPLOYEE_UPDATED', 'EMPLOYEE_UPDATED: EMP-009 (M SK)', '::1', '2026-06-23 07:46:42'),
+(174, 1, 'LEAVE_REQUESTED', 'Leave requested for Emp #9', '::1', '2026-06-23 08:12:27'),
+(175, 1, 'LEAVE_APPROVED', 'Approved leave request #2', '::1', '2026-06-23 08:12:44'),
+(176, 1, 'LOGIN_SUCCESS', 'User authenticated successfully via Web Portal.', '::1', '2026-06-23 08:30:17');
 
 -- --------------------------------------------------------
 
@@ -424,7 +462,10 @@ INSERT INTO `biometric_punches` (`id`, `biometric_user_id`, `punch_time`, `punch
 (62, '1050', '2026-06-18 12:39:45', 'UNKNOWN', 'Redundant', 'FQQ2254700186', 1, '2026-06-18 11:19:29'),
 (63, '9999', '2026-06-18 16:48:48', 'UNKNOWN', 'Clock Out', 'FQQ2254700186', 1, '2026-06-18 11:19:29'),
 (64, '9011', '2026-06-18 16:49:34', 'UNKNOWN', 'Clock Out', 'FQQ2254700186', 1, '2026-06-18 11:19:36'),
-(65, '1050', '2026-06-18 16:51:49', 'UNKNOWN', 'Redundant', 'FQQ2254700186', 1, '2026-06-18 11:21:50');
+(65, '1050', '2026-06-18 16:51:49', 'UNKNOWN', 'Redundant', 'FQQ2254700186', 1, '2026-06-18 11:21:50'),
+(66, '1050', '2026-06-22 13:55:26', 'UNKNOWN', 'Clock In', 'FQQ2254700186', 1, '2026-06-22 08:25:30'),
+(67, '9011', '2026-06-22 13:55:58', 'UNKNOWN', 'Clock In', 'FQQ2254700186', 1, '2026-06-22 08:26:01'),
+(68, '9011', '2026-06-22 14:09:41', 'UNKNOWN', 'Redundant', 'FQQ2254700186', 1, '2026-06-22 08:39:45');
 
 -- --------------------------------------------------------
 
@@ -501,13 +542,13 @@ CREATE TABLE `employees` (
 --
 
 INSERT INTO `employees` (`id`, `employee_code`, `first_name`, `last_name`, `email`, `phone`, `department`, `designation`, `status`, `biometric_user_id`, `hire_date`, `created_at`, `updated_at`, `date_of_birth`, `gender`, `address`, `branch_id`, `employment_type`, `base_salary`, `profile_photo`, `shift_id`, `attendance_policy_id`) VALUES
-(1, 'EMP-001', 'John', 'Doe', 'john@example.com', '', 'IT', 'Software Engineer', 'Active', '1001', '2026-06-22', '2026-06-02 10:56:08', '2026-06-22 07:27:19', NULL, NULL, '', NULL, 'Full-time', 25000.00, NULL, 1, 2),
+(1, 'EMP-001', 'John', 'Doe', 'john@example.com', '', 'IT', 'Software Engineer', 'Active', '1001', '2026-06-22', '2026-06-02 10:56:08', '2026-06-23 07:00:27', NULL, NULL, '', NULL, 'Full-time', 25000.00, NULL, 1, 1),
 (2, 'EMP-042', 'Sarah', 'Smith', 'sarah@example.com', '', 'HR', 'HR Manager', 'Active', '1002', '2026-06-22', '2026-06-02 10:56:08', '2026-06-22 07:27:47', NULL, NULL, '', NULL, 'Full-time', 75000.00, NULL, 1, 2),
 (3, 'EMP-015', 'Mike', 'Johnson', 'mike@example.com', '', 'Sales', 'Sales Executive', 'Active', '1003', '2026-06-22', '2026-06-02 10:56:08', '2026-06-22 07:28:04', NULL, NULL, '', NULL, 'Full-time', 40000.00, NULL, 1, 2),
 (4, '10001', 'lushanth', 'vasanthakumar', 'vlushanth@gmail.com', '0770227359', 'IT', '', 'Active', '9999', '2026-06-02', '2026-06-02 11:05:41', '2026-06-22 07:27:06', NULL, NULL, '', NULL, 'Full-time', 70000.00, NULL, 1, 1),
-(5, 'EMP-005', 'lushanth', 'vasanthakumar', 'sssvlushanth@gmail.com', '0770227359', 'IT', '', 'Active', '9011', '2026-06-02', '2026-06-02 14:54:22', '2026-06-22 07:26:55', '2026-04-30', 'Male', '1\r\nbatticaloa', 1, 'Full-time', 50000.00, NULL, 1, 1),
+(5, 'EMP-005', 'lushanth', 'vasanthakumar', 'sssvlushanth@gmail.com', '0770227359', 'IT', '', 'Active', '9011', '2026-06-02', '2026-06-02 14:54:22', '2026-06-23 06:45:49', '2026-04-30', 'Male', '1\r\nbatticaloa', 1, 'Full-time', 50000.00, NULL, 2, 1),
 (8, 'EMP-006', 'test user', 'vasanthakumar', 'vlushsasanth@gmail.com', '0770227359', 'IT', '', 'Active', NULL, '2026-06-02', '2026-06-02 15:10:19', '2026-06-18 10:28:25', '2026-06-25', 'Female', '1\r\nbatticalo', NULL, 'Full-time', 0.00, NULL, 1, 1),
-(9, 'EMP-009', 'M', 'SK', 'msk@gmail.com', '0756546038', 'IT', 'SE', 'Active', '1050', '2026-05-18', '2026-06-17 10:51:52', '2026-06-18 06:51:38', '2026-08-18', 'Male', 'Kattankudy', 1, 'Full-time', 30000.00, NULL, 1, 1);
+(9, 'EMP-009', 'M', 'SK', 'msk@gmail.com', '0756546038', 'IT', 'SE', 'Active', '1050', '2026-05-18', '2026-06-17 10:51:52', '2026-06-23 07:46:42', '2026-08-18', 'Male', 'Kattankudy', 1, 'Full-time', 30000.00, 'uploads/profiles/profile_d54812c5cd9210d00b2c2fe1_1782200802.png', 1, 1);
 
 -- --------------------------------------------------------
 
@@ -629,7 +670,8 @@ CREATE TABLE `leave_applications` (
 --
 
 INSERT INTO `leave_applications` (`id`, `employee_id`, `leave_type_id`, `covering_employee_id`, `start_date`, `end_date`, `total_days`, `reason`, `status`, `approved_by`, `created_at`, `updated_at`) VALUES
-(1, 5, 2, NULL, '2026-06-24', '2026-06-24', 1.00, 'Sick leave', 'Approved', 1, '2026-06-22 07:01:52', '2026-06-22 07:03:22');
+(1, 5, 2, NULL, '2026-06-24', '2026-06-24', 1.00, 'Sick leave', 'Approved', 1, '2026-06-22 07:01:52', '2026-06-22 07:03:22'),
+(2, 9, 2, NULL, '2026-06-24', '2026-06-24', 1.00, 'I have an exam at my university. So I need to attend to the exam.', 'Approved', 1, '2026-06-23 08:12:27', '2026-06-23 08:12:44');
 
 -- --------------------------------------------------------
 
@@ -657,20 +699,34 @@ CREATE TABLE `leave_balances` (
 --
 
 INSERT INTO `leave_balances` (`id`, `employee_id`, `leave_type_id`, `leave_policy_id`, `year`, `allocated_days`, `used_days`, `carried_forward`, `manual_adjustment`, `adjustment_reason`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, 1, 2026, 14.00, 2.00, 0.00, 0.00, NULL, '2026-06-02 14:19:49', '2026-06-18 10:19:13'),
+(1, 1, 1, 3, 2026, 0.00, 2.00, 0.00, 0.00, NULL, '2026-06-02 14:19:49', '2026-06-23 06:34:59'),
 (2, 1, 2, 2, 2026, 7.00, 1.00, 0.00, 0.00, NULL, '2026-06-02 14:19:49', '2026-06-02 14:19:49'),
-(3, 2, 1, 1, 2026, 14.00, 0.00, 0.00, 0.00, NULL, '2026-06-02 14:19:49', '2026-06-18 10:19:13'),
+(3, 2, 1, 3, 2026, 0.00, 0.00, 0.00, 0.00, NULL, '2026-06-02 14:19:49', '2026-06-23 06:34:59'),
 (7, 2, 2, 2, 2026, 7.00, 0.00, 0.00, 0.00, NULL, '2026-06-18 08:27:33', '2026-06-18 08:27:33'),
-(8, 3, 1, 1, 2026, 14.00, 0.00, 0.00, 0.00, NULL, '2026-06-18 08:27:33', '2026-06-18 10:19:13'),
+(8, 3, 1, 3, 2026, 0.00, 0.00, 0.00, 0.00, NULL, '2026-06-18 08:27:33', '2026-06-23 06:34:59'),
 (9, 3, 2, 2, 2026, 7.00, 0.00, 0.00, 0.00, NULL, '2026-06-18 08:27:33', '2026-06-18 08:27:33'),
-(10, 4, 1, 1, 2026, 14.00, 0.00, 0.00, 0.00, NULL, '2026-06-18 08:27:33', '2026-06-18 10:19:13'),
+(10, 4, 1, 3, 2026, 0.00, 0.00, 0.00, 0.00, NULL, '2026-06-18 08:27:33', '2026-06-23 06:34:59'),
 (11, 4, 2, 2, 2026, 7.00, 0.00, 0.00, 0.00, NULL, '2026-06-18 08:27:33', '2026-06-18 08:27:33'),
-(12, 5, 1, 1, 2026, 14.00, 0.00, 0.00, 0.00, NULL, '2026-06-18 08:27:33', '2026-06-18 10:19:13'),
+(12, 5, 1, 3, 2026, 0.00, 0.00, 0.00, 0.00, NULL, '2026-06-18 08:27:33', '2026-06-23 06:34:59'),
 (13, 5, 2, 2, 2026, 7.00, 1.00, 0.00, 0.00, NULL, '2026-06-18 08:27:33', '2026-06-22 07:03:22'),
-(14, 8, 1, 1, 2026, 14.00, 0.00, 0.00, 0.00, NULL, '2026-06-18 08:27:33', '2026-06-18 10:19:13'),
+(14, 8, 1, 3, 2026, 0.00, 0.00, 0.00, 0.00, NULL, '2026-06-18 08:27:33', '2026-06-23 06:34:59'),
 (15, 8, 2, 2, 2026, 7.00, 0.00, 0.00, 0.00, NULL, '2026-06-18 08:27:33', '2026-06-18 08:27:33'),
-(16, 9, 1, 1, 2026, 14.00, 0.00, 0.00, 0.00, NULL, '2026-06-18 08:27:33', '2026-06-18 10:19:13'),
-(17, 9, 2, 2, 2026, 7.00, 0.00, 0.00, 0.00, NULL, '2026-06-18 08:27:33', '2026-06-18 08:27:33');
+(16, 9, 1, 3, 2026, 0.00, 0.00, 0.00, 0.00, NULL, '2026-06-18 08:27:33', '2026-06-23 06:34:59'),
+(17, 9, 2, 2, 2026, 7.00, 1.00, 0.00, 0.00, NULL, '2026-06-18 08:27:33', '2026-06-23 08:12:44'),
+(21, 1, 5, 4, 2026, 6.00, 0.00, 0.00, 0.00, NULL, '2026-06-23 06:21:11', '2026-06-23 06:21:11'),
+(22, 1, 6, 5, 2026, 3.50, 0.00, 0.00, 0.00, NULL, '2026-06-23 06:21:11', '2026-06-23 06:21:11'),
+(26, 2, 5, 4, 2026, 6.00, 0.00, 0.00, 0.00, NULL, '2026-06-23 06:21:11', '2026-06-23 06:21:11'),
+(27, 2, 6, 5, 2026, 3.50, 0.00, 0.00, 0.00, NULL, '2026-06-23 06:21:11', '2026-06-23 06:21:11'),
+(31, 3, 5, 4, 2026, 6.00, 0.00, 0.00, 0.00, NULL, '2026-06-23 06:21:11', '2026-06-23 06:21:11'),
+(32, 3, 6, 5, 2026, 3.50, 0.00, 0.00, 0.00, NULL, '2026-06-23 06:21:11', '2026-06-23 06:21:11'),
+(36, 4, 5, 4, 2026, 6.00, 0.00, 0.00, 0.00, NULL, '2026-06-23 06:21:11', '2026-06-23 06:21:11'),
+(37, 4, 6, 5, 2026, 3.50, 0.00, 0.00, 0.00, NULL, '2026-06-23 06:21:11', '2026-06-23 06:21:11'),
+(41, 5, 5, 4, 2026, 6.00, 0.00, 0.00, 0.00, NULL, '2026-06-23 06:21:11', '2026-06-23 06:21:11'),
+(42, 5, 6, 5, 2026, 3.50, 0.00, 0.00, 0.00, NULL, '2026-06-23 06:21:11', '2026-06-23 06:21:11'),
+(46, 8, 5, 4, 2026, 6.00, 0.00, 0.00, 0.00, NULL, '2026-06-23 06:21:11', '2026-06-23 06:21:11'),
+(47, 8, 6, 5, 2026, 3.50, 0.00, 0.00, 0.00, NULL, '2026-06-23 06:21:11', '2026-06-23 06:21:11'),
+(51, 9, 5, 4, 2026, 6.00, 0.00, 0.00, 0.00, NULL, '2026-06-23 06:21:11', '2026-06-23 06:21:11'),
+(52, 9, 6, 5, 2026, 3.50, 0.00, 0.00, 0.00, NULL, '2026-06-23 06:21:11', '2026-06-23 06:21:11');
 
 -- --------------------------------------------------------
 
@@ -686,8 +742,8 @@ CREATE TABLE `leave_policies` (
   `accrual_type` enum('Monthly','Quarterly','Yearly','Fixed allocation') NOT NULL,
   `accrual_rate` decimal(5,2) NOT NULL,
   `carry_forward_limit` int(11) DEFAULT 0,
-  `min_days_per_application` int(11) DEFAULT 1,
-  `max_days_per_application` int(11) DEFAULT 365,
+  `min_days_per_application` decimal(5,2) DEFAULT 1.00,
+  `max_days_per_application` decimal(5,2) DEFAULT 365.00,
   `status` enum('Active','Inactive') DEFAULT 'Active',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -698,8 +754,11 @@ CREATE TABLE `leave_policies` (
 --
 
 INSERT INTO `leave_policies` (`id`, `name`, `description`, `leave_type_id`, `accrual_type`, `accrual_rate`, `carry_forward_limit`, `min_days_per_application`, `max_days_per_application`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'Standard Annual Policy', 'Base annual leave rules.', 1, 'Monthly', 1.16, 5, 1, 365, 'Active', '2026-06-02 14:19:49', '2026-06-02 14:19:49'),
-(2, 'Standard Sick Policy', 'Base sick leave rules.', 2, 'Yearly', 7.00, 0, 1, 365, 'Active', '2026-06-02 14:19:49', '2026-06-02 14:19:49');
+(1, 'Standard Annual Policy', 'Base annual leave rules.', 1, 'Monthly', 1.16, 5, 1.00, 365.00, 'Active', '2026-06-02 14:19:49', '2026-06-02 14:19:49'),
+(2, 'Standard Sick Policy', 'Base sick leave rules.', 2, 'Yearly', 7.00, 0, 1.00, 365.00, 'Active', '2026-06-02 14:19:49', '2026-06-02 14:19:49'),
+(3, 'Standard Annual Policy', 'Base annual leave rules. Supports full-day and half-day applications.', 1, 'Yearly', 14.00, 5, 0.50, 14.00, 'Active', '2026-06-23 05:58:14', '2026-06-23 05:58:14'),
+(4, 'Standard Short Leave Policy', 'Short leave allowance. Each short leave application consumes 0.25 day.', 5, 'Monthly', 0.50, 0, 0.25, 0.25, 'Active', '2026-06-23 05:58:14', '2026-06-23 05:58:14'),
+(5, 'Standard Casual Policy', 'Base casual leave rules. Supports full-day and half-day applications.', 6, 'Yearly', 7.00, 0, 0.50, 7.00, 'Active', '2026-06-23 06:03:13', '2026-06-23 06:03:13');
 
 -- --------------------------------------------------------
 
@@ -751,7 +810,9 @@ INSERT INTO `leave_types` (`id`, `name`, `description`, `max_days_per_year`, `is
 (1, 'Annual Leave', 'Standard paid time off.', 14, 1, '#3b82f6', 'Active', '2026-06-02 14:13:29'),
 (2, 'Sick Leave', 'Medical reasons.', 7, 1, '#ef4444', 'Active', '2026-06-02 14:13:29'),
 (3, 'Maternity Leave', 'Statutory.', 90, 1, '#ec4899', 'Active', '2026-06-02 14:13:29'),
-(4, 'Unpaid Leave', 'No pay.', 30, 0, '#6b7280', 'Active', '2026-06-02 14:13:29');
+(4, 'Unpaid Leave', 'Time off without pay.', 365, 0, '#6b7280', 'Active', '2026-06-02 14:13:29'),
+(5, 'Short Leave', 'Short leave permission. One request consumes 0.25 day.', 6, 1, '#06b6d4', 'Active', '2026-06-23 05:58:14'),
+(6, 'Casual Leave', 'Paid casual leave for personal or urgent needs. Supports full-day and half-day applications.', 7, 1, '#f59e0b', 'Active', '2026-06-23 06:03:13');
 
 -- --------------------------------------------------------
 
@@ -829,13 +890,13 @@ CREATE TABLE `payroll_records` (
 --
 
 INSERT INTO `payroll_records` (`id`, `employee_id`, `payroll_month`, `base_salary`, `overtime_hours`, `overtime_amount`, `deductions`, `unpaid_days`, `net_salary`, `status`, `created_at`, `updated_at`) VALUES
-(1, 1, '2026-06', 25000.00, 1.50, 213.07, 1136.36, 1.00, 24076.71, 'Finalized', '2026-06-03 02:58:19', '2026-06-22 07:29:02'),
-(2, 2, '2026-06', 75000.00, 0.00, 0.00, 3409.09, 1.00, 71590.91, 'Finalized', '2026-06-03 02:58:19', '2026-06-22 07:29:02'),
-(3, 3, '2026-06', 40000.00, 0.00, 0.00, 1818.18, 1.00, 38181.82, 'Finalized', '2026-06-03 02:58:19', '2026-06-22 07:29:02'),
-(4, 4, '2026-06', 70000.00, 0.00, 0.00, 31818.18, 10.00, 38181.82, 'Finalized', '2026-06-03 02:58:19', '2026-06-22 07:29:02'),
-(5, 5, '2026-06', 50000.00, 0.00, 0.00, 20454.55, 9.00, 29545.45, 'Finalized', '2026-06-03 02:58:19', '2026-06-22 07:29:02'),
-(6, 8, '2026-06', 0.00, 0.00, 0.00, 0.00, 15.00, 0.00, 'Finalized', '2026-06-03 02:58:19', '2026-06-22 07:29:02'),
-(13, 9, '2026-06', 30000.00, 0.00, 0.00, 20454.55, 15.00, 9545.45, 'Finalized', '2026-06-18 05:21:47', '2026-06-22 07:29:02'),
+(1, 1, '2026-06', 25000.00, 1.50, 312.50, 1666.67, 2.00, 23645.83, 'Finalized', '2026-06-03 02:58:19', '2026-06-23 07:00:32'),
+(2, 2, '2026-06', 75000.00, 0.00, 0.00, 5000.00, 2.00, 70000.00, 'Finalized', '2026-06-03 02:58:19', '2026-06-23 05:52:59'),
+(3, 3, '2026-06', 40000.00, 0.00, 0.00, 2666.67, 2.00, 37333.33, 'Finalized', '2026-06-03 02:58:19', '2026-06-23 05:52:59'),
+(4, 4, '2026-06', 70000.00, 0.00, 0.00, 25666.67, 11.00, 44333.33, 'Finalized', '2026-06-03 02:58:19', '2026-06-23 05:52:59'),
+(5, 5, '2026-06', 50000.00, 0.00, 0.00, 15000.00, 9.00, 35000.00, 'Finalized', '2026-06-03 02:58:19', '2026-06-23 05:52:59'),
+(6, 8, '2026-06', 0.00, 0.00, 0.00, 0.00, 16.00, 0.00, 'Finalized', '2026-06-03 02:58:19', '2026-06-23 05:31:32'),
+(13, 9, '2026-06', 30000.00, 0.00, 0.00, 14000.00, 14.00, 16000.00, 'Finalized', '2026-06-18 05:21:47', '2026-06-23 05:52:59'),
 (28, 1, '2026-05', 25000.00, 0.00, 0.00, 0.00, 0.00, 25000.00, 'Finalized', '2026-06-18 09:24:27', '2026-06-22 07:30:29'),
 (29, 2, '2026-05', 75000.00, 0.00, 0.00, 0.00, 0.00, 75000.00, 'Finalized', '2026-06-18 09:24:27', '2026-06-22 07:30:29'),
 (30, 3, '2026-05', 40000.00, 0.00, 0.00, 0.00, 0.00, 40000.00, 'Finalized', '2026-06-18 09:24:27', '2026-06-22 07:30:29'),
@@ -867,7 +928,8 @@ CREATE TABLE `shifts` (
 --
 
 INSERT INTO `shifts` (`id`, `name`, `description`, `start_time`, `end_time`, `grace_period`, `is_night_shift`, `status`, `created_at`) VALUES
-(1, 'Standard Day Shift', 'Regular 9-to-5 working hours.', '09:00:00', '17:00:00', 15, 0, 'Active', '2026-06-02 14:22:03');
+(1, 'Standard Day Shift', 'Regular 9-to-5 working hours.', '09:00:00', '17:00:00', 15, 0, 'Active', '2026-06-02 14:22:03'),
+(2, 'Standard Night Shift', 'Regular 5-to-1 working hours.', '17:00:00', '01:00:00', 15, 1, 'Active', '2026-06-23 06:45:30');
 
 -- --------------------------------------------------------
 
@@ -1102,25 +1164,25 @@ ALTER TABLE `attendance_policies`
 -- AUTO_INCREMENT for table `attendance_records`
 --
 ALTER TABLE `attendance_records`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=170;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=180;
 
 --
 -- AUTO_INCREMENT for table `attendance_regularizations`
 --
 ALTER TABLE `attendance_regularizations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `audit_logs`
 --
 ALTER TABLE `audit_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=153;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=177;
 
 --
 -- AUTO_INCREMENT for table `biometric_punches`
 --
 ALTER TABLE `biometric_punches`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
 
 --
 -- AUTO_INCREMENT for table `branches`
@@ -1156,19 +1218,19 @@ ALTER TABLE `holidays`
 -- AUTO_INCREMENT for table `leave_applications`
 --
 ALTER TABLE `leave_applications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `leave_balances`
 --
 ALTER TABLE `leave_balances`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=123;
 
 --
 -- AUTO_INCREMENT for table `leave_policies`
 --
 ALTER TABLE `leave_policies`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `leave_requests`
@@ -1180,7 +1242,7 @@ ALTER TABLE `leave_requests`
 -- AUTO_INCREMENT for table `leave_types`
 --
 ALTER TABLE `leave_types`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `meetings`
@@ -1198,13 +1260,13 @@ ALTER TABLE `payroll`
 -- AUTO_INCREMENT for table `payroll_records`
 --
 ALTER TABLE `payroll_records`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=98;
 
 --
 -- AUTO_INCREMENT for table `shifts`
 --
 ALTER TABLE `shifts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `users`
