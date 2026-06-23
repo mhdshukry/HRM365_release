@@ -41,6 +41,7 @@ $unpaid_days = floatval($payroll['unpaid_days'] ?? 0);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payslip - <?php echo htmlspecialchars($payroll['first_name'] . ' ' . $payroll['last_name']); ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -66,6 +67,42 @@ $unpaid_days = floatval($payroll['unpaid_days'] ?? 0);
             body { background: white; padding: 0; }
             .payslip-container { box-shadow: none; padding: 0; }
             .print-btn { display: none; }
+        }
+
+        @media (max-width: 720px) {
+            body { padding: 1rem; }
+            .payslip-container { padding: 1.25rem; }
+            .header,
+            .net-pay {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: left;
+            }
+            .payslip-title,
+            .header [style*="text-align: right"] {
+                text-align: left !important;
+            }
+            .emp-details {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            .detail-row {
+                flex-direction: column;
+                gap: 0.15rem;
+            }
+            .salary-table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .salary-table th,
+            .salary-table td {
+                padding: 0.75rem;
+                min-width: 160px;
+            }
+            .print-btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -109,7 +146,7 @@ $unpaid_days = floatval($payroll['unpaid_days'] ?? 0);
                     <td class="amount"><?php echo htmlspecialchars($currency); ?> <?php echo number_format($payroll['base_salary'], 2); ?></td>
                 </tr>
                 <tr>
-                    <td>Overtime Allowance <span style="font-size: 0.8rem; color: #6b7280; margin-left: 0.5rem;">(<?php echo htmlspecialchars(format_hours_minutes($total_overtime_hours)); ?>)</span></td>
+                    <td>Overtime Allowance <span style="font-size: 0.8rem; color: #6b7280; margin-left: 0.5rem;">(<?php echo htmlspecialchars(format_hours_minutes($total_overtime_hours)); ?>, based on 240 monthly hours)</span></td>
                     <td class="amount" style="color: #10b981;">+<?php echo htmlspecialchars($currency); ?> <?php echo number_format($payroll['overtime_amount'], 2); ?></td>
                 </tr>
                 <tr>
@@ -128,7 +165,7 @@ $unpaid_days = floatval($payroll['unpaid_days'] ?? 0);
             </thead>
             <tbody>
                 <tr>
-                    <td>Unpaid Leave / Absence Deductions <span style="font-size: 0.8rem; color: #6b7280; margin-left: 0.5rem;">(<?php echo number_format($unpaid_days, 2); ?> day(s))</span></td>
+                    <td>Unpaid Leave / Absence Deductions <span style="font-size: 0.8rem; color: #6b7280; margin-left: 0.5rem;">(<?php echo number_format($unpaid_days, 2); ?> day(s), based on 30 salary days)</span></td>
                     <td class="amount" style="color: #ef4444;">-<?php echo htmlspecialchars($currency); ?> <?php echo number_format($payroll['deductions'], 2); ?></td>
                 </tr>
                 <tr>
