@@ -1,166 +1,7 @@
 <?php
 require_once '../../includes/db.php';
 require_once '../../includes/auth.php';
-require_once '../../includes/attendance_math.php';
-
-$today = date('Y-m-d');
-$defaultStart = date('Y-m-01');
-$start_date = isset($_GET['start_date']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['start_date']) ? $_GET['start_date'] : $defaultStart;
-$end_date = isset($_GET['end_date']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['end_date']) ? $_GET['end_date'] : $today;
-if (strtotime($end_date) < strtotime($start_date)) {
-    $end_date = $start_date;
-}
-
-$employee_filter = intval($_GET['employee_id'] ?? 0);
-$employeeWhere = '';
-$employeeParams = [];
-
-if ($currentUser['role'] === 'employee') {
-    $employee_filter = intval($currentUser['employee_id'] ?? 0);
-    $employeeWhere = 'WHERE e.id = ?';
-    $employeeParams[] = $employee_filter;
-} elseif ($currentUser['role'] === 'manager') {
-    $employeeWhere = 'WHERE e.department = ?';
-    $employeeParams[] = $currentUser['department'] ?? '';
-}
-
-$employeeSql = "
-    SELECT e.id, e.first_name, e.last_name, e.employee_code
-    FROM employees e
-    {$employeeWhere}
-    ORDER BY e.first_name ASC
-";
-$employeeStmt = $pdo->prepare($employeeSql);
-$employeeStmt->execute($employeeParams);
-$employees = $employeeStmt->fetchAll();
-
-$scopedEmployeeIds = array_map(fn($employee) => intval($employee['id']), $employees);
-if ($employee_filter > 0 && !in_array($employee_filter, $scopedEmployeeIds, true)) {
-    $employee_filter = 0;
-}
-
-$scopeSql = '';
-$scopeParams = [];
-if ($employee_filter > 0) {
-    $scopeSql = ' AND e.id = ?';
-    $scopeParams[] = $employee_filter;
-} elseif ($currentUser['role'] === 'manager') {
-    $scopeSql = ' AND e.department = ?';
-    $scopeParams[] = $currentUser['department'] ?? '';
-} elseif ($currentUser['role'] === 'employee') {
-    $scopeSql = ' AND e.id = ?';
-    $scopeParams[] = intval($currentUser['employee_id'] ?? 0);
-}
-
-$attendanceStmt = $pdo->prepare("
-    SELECT a.*, e.first_name, e.last_name, e.employee_code
-    FROM attendance_records a
-    JOIN employees e ON e.id = a.employee_id
-    WHERE a.date BETWEEN ? AND ?
-    {$scopeSql}
-    ORDER BY a.date DESC, e.first_name ASC
-");
-$attendanceStmt->execute(array_merge([$start_date, $end_date], $scopeParams));
-$attendanceRows = $attendanceStmt->fetchAll();
-
-$leaveStmt = $pdo->prepare("
-    SELECT la.*, e.first_name, e.last_name, e.employee_code, lt.name AS leave_type, lt.is_paid
-    FROM leave_applications la
-    JOIN employees e ON e.id = la.employee_id
-    JOIN leave_types lt ON lt.id = la.leave_type_id
-    WHERE la.start_date <= ?
-      AND COALESCE(la.end_date, la.start_date) >= ?
-    {$scopeSql}
-    ORDER BY la.start_date DESC, e.first_name ASC
-");
-$leaveStmt->execute(array_merge([$end_date, $start_date], $scopeParams));
-$leaveRows = $leaveStmt->fetchAll();
-
-$payrollStartMonth = date('Y-m', strtotime($start_date));
-$payrollEndMonth = date('Y-m', strtotime($end_date));
-$payrollStmt = $pdo->prepare("
-    SELECT p.*, e.first_name, e.last_name, e.employee_code
-    FROM payroll_records p
-    JOIN employees e ON e.id = p.employee_id
-    WHERE p.payroll_month BETWEEN ? AND ?
-    {$scopeSql}
-    ORDER BY p.payroll_month DESC, e.first_name ASC
-");
-$payrollStmt->execute(array_merge([$payrollStartMonth, $payrollEndMonth], $scopeParams));
-$payrollRows = $payrollStmt->fetchAll();
-
-$summary = [
-    'present' => 0,
-    'absent' => 0,
-    'leave' => 0,
-    'hours' => 0.00,
-    'overtime' => 0.00,
-    'unpaid_days' => 0.00,
-    'net_salary' => 0.00,
-];
-
-foreach ($attendanceRows as $row) {
-    if ($row['status'] === 'Present') {
-        $summary['present']++;
-    } elseif ($row['status'] === 'Absent') {
-        $summary['absent']++;
-    } elseif ($row['status'] === 'On Leave') {
-        $summary['leave']++;
-    }
-    $summary['hours'] += floatval($row['total_hours']);
-    $summary['overtime'] += floatval($row['overtime_hours']);
-}
-
-foreach ($payrollRows as $row) {
-    $summary['unpaid_days'] += floatval($row['unpaid_days'] ?? 0);
-    $summary['net_salary'] += floatval($row['net_salary']);
-}
-
-$currency = $pdo->query("SELECT setting_value FROM system_settings WHERE setting_key = 'currency'")->fetchColumn() ?: 'LKR';
-$selectedEmployeeLabel = 'All employees';
-foreach ($employees as $employee) {
-    if (intval($employee['id']) === $employee_filter) {
-        $selectedEmployeeLabel = $employee['first_name'] . ' ' . $employee['last_name'] . ' (' . $employee['employee_code'] . ')';
-        break;
-    }
-}
-$periodLabel = date('M d, Y', strtotime($start_date)) . ' to ' . date('M d, Y', strtotime($end_date));
-$leaveByEmployee = [];
-foreach ($leaveRows as $row) {
-    $employeeId = intval($row['employee_id']);
-    if (!isset($leaveByEmployee[$employeeId])) {
-        $leaveByEmployee[$employeeId] = [];
-    }
-    $leaveByEmployee[$employeeId][] = $row;
-}
-
-$leavePayrollRows = [];
-$seenLeaveEmployees = [];
-foreach ($payrollRows as $row) {
-    $employeeId = intval($row['employee_id']);
-    $seenLeaveEmployees[$employeeId] = true;
-    $leavePayrollRows[] = [
-        'employee_id' => $employeeId,
-        'employee_name' => $row['first_name'] . ' ' . $row['last_name'],
-        'employee_code' => $row['employee_code'],
-        'leave_rows' => $leaveByEmployee[$employeeId] ?? [],
-        'payroll' => $row,
-    ];
-}
-
-foreach ($leaveByEmployee as $employeeId => $rows) {
-    if (isset($seenLeaveEmployees[$employeeId]) || empty($rows)) {
-        continue;
-    }
-    $first = $rows[0];
-    $leavePayrollRows[] = [
-        'employee_id' => $employeeId,
-        'employee_name' => $first['first_name'] . ' ' . $first['last_name'],
-        'employee_code' => $first['employee_code'],
-        'leave_rows' => $rows,
-        'payroll' => null,
-    ];
-}
+require_once __DIR__ . '/report_data.php';
 
 $perPage = 10;
 $attendancePage = max(1, intval($_GET['attendance_page'] ?? 1));
@@ -177,6 +18,14 @@ function report_page_url(string $pageParam, int $page): string
     $params = $_GET;
     $params[$pageParam] = $page;
     return '?' . http_build_query($params);
+}
+
+function report_export_url(string $format): string
+{
+    $params = $_GET;
+    unset($params['attendance_page'], $params['leave_payroll_page']);
+    $params['format'] = $format;
+    return 'export.php?' . http_build_query($params);
 }
 
 include '../../includes/header.php';
@@ -233,6 +82,16 @@ include '../../includes/header.php';
         border-radius: 999px;
         background: var(--bg-secondary);
         border: 1px solid var(--border-color);
+    }
+    .report-export-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        justify-content: flex-end;
+    }
+    .report-export-btn {
+        min-height: 42px;
+        white-space: nowrap;
     }
     .report-kpi-grid {
         display: grid;
@@ -410,6 +269,12 @@ include '../../includes/header.php';
         .report-split-grid {
             grid-template-columns: 1fr;
         }
+        .report-export-actions {
+            justify-content: stretch;
+        }
+        .report-export-actions .btn {
+            flex: 1 1 150px;
+        }
         .report-section-header {
             align-items: flex-start;
             flex-direction: column;
@@ -425,6 +290,14 @@ include '../../includes/header.php';
     <div>
         <h1 class="page-title">Reports</h1>
         <div class="page-subtitle">Attendance, leave, payroll, and compliance in one filtered view.</div>
+    </div>
+    <div class="report-export-actions">
+        <a href="<?php echo htmlspecialchars(report_export_url('excel')); ?>" class="btn btn-primary report-export-btn">
+            <i class="fas fa-file-excel"></i> Excel
+        </a>
+        <a href="<?php echo htmlspecialchars(report_export_url('pdf')); ?>" class="btn report-export-btn" style="background: var(--accent-danger); color: #fff;">
+            <i class="fas fa-file-pdf"></i> PDF
+        </a>
     </div>
 </div>
 
@@ -459,6 +332,7 @@ include '../../includes/header.php';
             <span class="report-chip"><i class="fas fa-calendar-alt"></i> <?php echo htmlspecialchars($periodLabel); ?></span>
             <span class="report-chip"><i class="fas fa-user"></i> <?php echo htmlspecialchars($selectedEmployeeLabel); ?></span>
             <span class="report-chip"><i class="fas fa-table"></i> <?php echo count($attendanceRows); ?> attendance row(s)</span>
+            <span class="report-chip"><i class="fas fa-download"></i> Exports use the active filters</span>
         </div>
     </form>
 </div>
