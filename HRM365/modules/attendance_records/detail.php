@@ -71,8 +71,8 @@ $earlyMinutes = ($clockOutTs && $expectedEndTs && $clockOutTs < ($expectedEndTs 
     : 0;
 
 $shiftHours = calculate_shift_hours($record['start_time'], $record['end_time']);
-$hourlyRate = floatval($record['base_salary']) > 0 && $shiftHours > 0 ? floatval($record['base_salary']) / (22 * $shiftHours) : 0.00;
-$policyRate = floatval($record['overtime_rate_per_hour'] ?? 0) > 0 ? floatval($record['overtime_rate_per_hour']) : 1.00;
+$hourlyRate = floatval($record['base_salary']) > 0 ? floatval($record['base_salary']) / PAYROLL_STANDARD_MONTHLY_HOURS : 0.00;
+$policyRate = floatval($record['overtime_rate_per_hour'] ?? 0) > 0 ? floatval($record['overtime_rate_per_hour']) : PAYROLL_NORMAL_OT_RATE;
 
 include '../../includes/header.php';
 ?>
@@ -125,7 +125,7 @@ include '../../includes/header.php';
         <div style="display: grid; gap: 0.75rem;">
             <div><strong>Overtime:</strong> <?php echo htmlspecialchars(format_hours_minutes(floatval($record['overtime_hours']))); ?> (<?php echo number_format(floatval($record['overtime_hours']), 2); ?>h)</div>
             <div><strong>Monthly Salary:</strong> <?php echo htmlspecialchars($currency); ?> <?php echo number_format(floatval($record['base_salary']), 2); ?></div>
-            <div><strong>Base Hourly Rate:</strong> <?php echo htmlspecialchars($currency); ?> <?php echo number_format($hourlyRate, 2); ?></div>
+            <div><strong>Standard Hourly Rate:</strong> <?php echo htmlspecialchars($currency); ?> <?php echo number_format($hourlyRate, 2); ?> <span style="color: var(--text-muted);">(salary / <?php echo number_format(PAYROLL_STANDARD_MONTHLY_HOURS, 0); ?>)</span></div>
             <div><strong>Overtime Multiplier:</strong> <?php echo number_format($policyRate, 2); ?>x</div>
             <div><strong>Overtime Amount:</strong> <?php echo htmlspecialchars($currency); ?> <?php echo number_format(floatval($record['overtime_amount']), 2); ?></div>
         </div>
