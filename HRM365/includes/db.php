@@ -91,6 +91,16 @@ try {
         $pdo->exec("ALTER TABLE attendance_records MODIFY status ENUM('Present', 'Absent', 'Half Day', 'Holiday', 'On Leave', 'Pending') DEFAULT 'Pending'");
     }
 
+    $attendancePoliciesTable = $pdo->query("SHOW TABLES LIKE 'attendance_policies'");
+    if ($attendancePoliciesTable->rowCount() > 0) {
+        $pdo->exec("
+            UPDATE attendance_policies
+            SET overtime_rate_per_hour = 1.50
+            WHERE name IN ('Flexible Remote Policy', 'Strict Office Policy')
+              AND overtime_rate_per_hour < 1.50
+        ");
+    }
+
     $payrollTable = $pdo->query("SHOW TABLES LIKE 'payroll_records'");
     if ($payrollTable->rowCount() > 0) {
         $payrollColumns = [
@@ -188,6 +198,56 @@ try {
                 $pdo->exec("ALTER TABLE users ADD UNIQUE KEY unique_employee_login (employee_id)");
             }
         }
+    }
+
+    $leaveTypesTable = $pdo->query("SHOW TABLES LIKE 'leave_types'");
+    if ($leaveTypesTable->rowCount() > 0) {
+        $pdo->exec("
+            INSERT INTO leave_types (id, name, description, max_days_per_year, is_paid, color, status)
+            VALUES
+                (4, 'Unpaid Leave', 'Time off without pay.', 365, 0, '#6b7280', 'Active'),
+                (5, 'Short Leave', 'Short leave permission. One request consumes 0.25 day.', 6, 1, '#06b6d4', 'Active'),
+                (6, 'Casual Leave', 'Paid casual leave for personal or urgent needs. Supports full-day and half-day applications.', 7, 1, '#f59e0b', 'Active')
+            ON DUPLICATE KEY UPDATE
+                description = VALUES(description),
+                max_days_per_year = VALUES(max_days_per_year),
+                is_paid = VALUES(is_paid),
+                color = VALUES(color),
+                status = IF(status = 'Inactive', status, VALUES(status))
+        ");
+    }
+
+    $leavePoliciesTable = $pdo->query("SHOW TABLES LIKE 'leave_policies'");
+    if ($leavePoliciesTable->rowCount() > 0) {
+        $pdo->exec("ALTER TABLE leave_policies MODIFY min_days_per_application DECIMAL(5, 2) DEFAULT 1.00");
+        $pdo->exec("ALTER TABLE leave_policies MODIFY max_days_per_application DECIMAL(5, 2) DEFAULT 365.00");
+        $pdo->exec("
+            INSERT INTO leave_policies
+                (name, description, leave_type_id, accrual_type, accrual_rate, carry_forward_limit, min_days_per_application, max_days_per_application, status)
+            SELECT 'Standard Annual Policy', 'Base annual leave rules. Supports full-day and half-day applications.', 1, 'Yearly', 14.00, 5, 0.50, 14.00, 'Active'
+            WHERE NOT EXISTS (SELECT 1 FROM leave_policies WHERE name = 'Standard Annual Policy' LIMIT 1)
+        ");
+        $pdo->exec("
+            INSERT INTO leave_policies
+                (name, description, leave_type_id, accrual_type, accrual_rate, carry_forward_limit, min_days_per_application, max_days_per_application, status)
+            SELECT 'Standard Casual Policy', 'Base casual leave rules. Supports full-day and half-day applications.', 6, 'Yearly', 7.00, 0, 0.50, 7.00, 'Active'
+            WHERE NOT EXISTS (SELECT 1 FROM leave_policies WHERE name = 'Standard Casual Policy' LIMIT 1)
+        ");
+        $pdo->exec("
+            INSERT INTO leave_policies
+                (name, description, leave_type_id, accrual_type, accrual_rate, carry_forward_limit, min_days_per_application, max_days_per_application, status)
+            SELECT 'Standard Short Leave Policy', 'Short leave allowance. Each short leave application consumes 0.25 day.', 5, 'Monthly', 0.50, 0, 0.25, 0.25, 'Active'
+            WHERE NOT EXISTS (SELECT 1 FROM leave_policies WHERE name = 'Standard Short Leave Policy' LIMIT 1)
+        ");
+        $pdo->exec("
+            UPDATE leave_policies
+            SET description = 'Short leave allowance. Each short leave application consumes 0.25 day.',
+                accrual_type = 'Monthly',
+                accrual_rate = 0.50,
+                min_days_per_application = 0.25,
+                max_days_per_application = 0.25
+            WHERE leave_type_id = 5
+        ");
     }
 } catch (\PDOException $e) {
     die("Database Connection Failed: " . $e->getMessage());
