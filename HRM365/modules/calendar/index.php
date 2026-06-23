@@ -31,8 +31,8 @@ include '../../includes/header.php';
     </div>
 </div>
 
-<div class="card" style="margin-bottom: 1.5rem; padding: 1rem 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; background: var(--bg-main);">
-    <div style="flex: 1; min-width: 200px;">
+<div class="card calendar-filter-card">
+    <div class="calendar-filter-field">
         <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.85rem; font-weight: 500;">Event Type</label>
         <select id="filterType" class="form-control" style="width: 100%; padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
             <option value="all">All Events</option>
@@ -41,7 +41,7 @@ include '../../includes/header.php';
             <option value="leave">Leaves Only</option>
         </select>
     </div>
-    <div style="flex: 1; min-width: 200px;">
+    <div class="calendar-filter-field">
         <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.85rem; font-weight: 500;">Department</label>
         <select id="filterDept" class="form-control" style="width: 100%; padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
             <option value="all">All Departments</option>
@@ -50,7 +50,7 @@ include '../../includes/header.php';
             <?php endforeach; ?>
         </select>
     </div>
-    <div style="flex: 1; min-width: 200px;">
+    <div class="calendar-filter-field">
         <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.85rem; font-weight: 500;">Employee</label>
         <select id="filterEmp" class="form-control" style="width: 100%; padding: 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
             <option value="all">All Employees</option>
@@ -59,19 +59,19 @@ include '../../includes/header.php';
             <?php endforeach; ?>
         </select>
     </div>
-    <div>
+    <div class="calendar-filter-action">
         <button id="applyFiltersBtn" class="btn btn-primary" style="padding: 0.6rem 1.5rem;"><i class="fas fa-filter"></i> Filter</button>
     </div>
 </div>
 
-<div class="card" style="padding: 1.5rem;">
+<div class="card calendar-card">
     <!-- Calendar Container -->
     <div id="calendar"></div>
 </div>
 
 <!-- Event Detail Modal -->
-<div id="eventModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
-    <div style="background: var(--bg-main); width: 90%; max-width: 500px; border-radius: var(--radius-lg); box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden; transform: scale(0.95); transition: transform 0.2s;">
+<div id="eventModal" class="calendar-modal">
+    <div class="calendar-modal-panel">
         <div id="modalHeader" style="padding: 1.5rem; display: flex; align-items: center; border-bottom: 1px solid var(--border-color);">
             <div id="modalIcon" style="margin-right: 1rem; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;"></div>
             <div style="flex: 1;">
@@ -99,10 +99,19 @@ include '../../includes/header.php';
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('calendar');
+    var isMobile = window.matchMedia('(max-width: 720px)').matches;
 
     var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        headerToolbar: {
+        height: 'auto',
+        contentHeight: 'auto',
+        dayMaxEvents: isMobile ? 2 : 3,
+        moreLinkClick: 'popover',
+        headerToolbar: isMobile ? {
+            left: 'prev,next',
+            center: 'title',
+            right: 'today,dayGridMonth,listWeek'
+        } : {
             left: 'prev,next today',
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
@@ -147,6 +156,19 @@ document.addEventListener('DOMContentLoaded', function() {
             info.el.style.cursor = 'pointer';
             info.el.style.marginBottom = '2px';
             info.el.style.boxShadow = '0 1px 2px rgba(0,0,0,0.05)';
+        },
+        windowResize: function() {
+            const shouldBeMobile = window.matchMedia('(max-width: 720px)').matches;
+            calendar.setOption('headerToolbar', shouldBeMobile ? {
+                left: 'prev,next',
+                center: 'title',
+                right: 'today,dayGridMonth,listWeek'
+            } : {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+            });
+            calendar.setOption('dayMaxEvents', shouldBeMobile ? 2 : 3);
         }
     });
 
@@ -222,7 +244,7 @@ function showEventDetails(event) {
         dStr = sDate + ' (All Day)';
     } else if (event.allDay && event.end) {
         const eDate = new Date(event.end.getTime() - 86400000).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-        dStr = sDate === eDate ? sDate : sDate + ' — ' + eDate;
+        dStr = sDate === eDate ? sDate : sDate + ' - ' + eDate;
     } else {
         const sTime = event.start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         const eTime = event.end ? event.end.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
@@ -299,8 +321,64 @@ document.getElementById('eventModal').addEventListener('click', function(e) {
 </script>
 
 <style>
+.calendar-filter-card {
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.5rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    background: var(--bg-main);
+}
+.calendar-filter-field {
+    flex: 1 1 200px;
+    min-width: 0;
+}
+.calendar-filter-action {
+    flex: 0 0 auto;
+}
+.calendar-card {
+    padding: 1.5rem;
+    overflow: hidden;
+}
+.calendar-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+    padding: 1rem;
+}
+.calendar-modal-panel {
+    background: var(--bg-main);
+    width: min(100%, 500px);
+    max-height: calc(100vh - 2rem);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    overflow: auto;
+    transform: scale(0.95);
+    transition: transform 0.2s;
+}
+#calendar {
+    max-width: 100%;
+}
 .fc-theme-standard td, .fc-theme-standard th, .fc-theme-standard .fc-scrollgrid {
     border-color: var(--border-color) !important;
+}
+.fc .fc-toolbar {
+    gap: 0.75rem;
+}
+.fc .fc-toolbar-title {
+    font-size: 1.25rem;
+    line-height: 1.25;
+}
+.fc .fc-button {
+    min-height: 36px;
 }
 .fc-col-header-cell {
     background: var(--bg-secondary);
@@ -333,6 +411,105 @@ document.getElementById('eventModal').addEventListener('click', function(e) {
 }
 .fc-event-title {
     font-weight: 500 !important;
+}
+.fc-event-title,
+.fc-event-time {
+    white-space: normal;
+}
+.fc-list-event-title a,
+.fc-list-event-time {
+    color: var(--text-primary) !important;
+}
+@media (max-width: 900px) {
+    .calendar-filter-card {
+        padding: 1rem;
+    }
+    .calendar-card {
+        padding: 1rem;
+    }
+    .fc .fc-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+    .fc .fc-toolbar-chunk {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+    .fc .fc-toolbar-title {
+        text-align: center;
+    }
+}
+@media (max-width: 720px) {
+    .calendar-filter-card {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+    }
+    .calendar-filter-action,
+    .calendar-filter-action .btn {
+        width: 100%;
+    }
+    .calendar-filter-action .btn {
+        justify-content: center;
+    }
+    .fc .fc-toolbar-title {
+        font-size: 1.05rem;
+    }
+    .fc .fc-button {
+        padding: 0.38rem 0.55rem;
+        font-size: 0.78rem;
+    }
+    .fc .fc-list-event-title,
+    .fc .fc-list-event-time {
+        font-size: 0.82rem;
+    }
+    .fc .fc-list-day-cushion {
+        padding: 0.55rem 0.7rem;
+    }
+    .fc .fc-daygrid-day-frame {
+        min-height: 58px;
+    }
+    .fc .fc-daygrid-day-number {
+        font-size: 0.78rem;
+        padding: 0.35rem !important;
+    }
+    .fc .fc-daygrid-event {
+        font-size: 0.68rem;
+        line-height: 1.2;
+        padding: 1px 3px !important;
+    }
+    .fc .fc-daygrid-more-link {
+        font-size: 0.68rem;
+    }
+    .calendar-modal {
+        align-items: flex-end;
+        padding: 0.75rem;
+    }
+    .calendar-modal-panel {
+        width: 100%;
+        max-height: 88vh;
+        border-radius: var(--radius-lg) var(--radius-lg) var(--radius-sm) var(--radius-sm);
+    }
+    #modalHeader {
+        padding: 1rem !important;
+        align-items: flex-start !important;
+    }
+    #modalIcon {
+        width: 34px !important;
+        height: 34px !important;
+        margin-right: 0.75rem !important;
+        flex-shrink: 0;
+    }
+    #modalTitle {
+        font-size: 1rem !important;
+        overflow-wrap: anywhere;
+    }
+    #modalDetails {
+        font-size: 0.86rem !important;
+        overflow-wrap: anywhere;
+    }
 }
 </style>
 
