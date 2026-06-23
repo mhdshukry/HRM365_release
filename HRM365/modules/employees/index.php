@@ -1,6 +1,7 @@
 <?php 
 require_once '../../includes/db.php';
 require_once '../../includes/auth.php';
+require_once '../../includes/avatar.php';
 
 // Fetch real data from the database using PDO
 $query = "SELECT * FROM employees ";
@@ -48,9 +49,7 @@ include '../../includes/header.php';
                     <td><strong><?php echo htmlspecialchars($emp['employee_code']); ?></strong></td>
                     <td>
                         <div style="display: flex; align-items: center; gap: 0.75rem;">
-                            <div class="avatar" style="width: 32px; height: 32px; font-size: 0.85rem;">
-                                <?php echo substr($emp['first_name'], 0, 1) . substr($emp['last_name'], 0, 1); ?>
-                            </div>
+                            <?php echo render_avatar($emp['first_name'], $emp['last_name'], $emp['profile_photo'] ?? null, $emp['employee_code'], 'avatar', 'width: 32px; height: 32px; font-size: 0.85rem;'); ?>
                             <?php echo htmlspecialchars($emp['first_name'] . ' ' . $emp['last_name']); ?>
                         </div>
                     </td>
