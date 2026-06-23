@@ -136,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $raw_ot_hours = round($ot_seconds / 3600, 2);
                             if ($raw_ot_hours > 0.5) {
                                 $overtime_hours = $raw_ot_hours;
-                                $rate = floatval($emp['overtime_rate_per_hour']) > 0 ? floatval($emp['overtime_rate_per_hour']) : 1.0;
+                                $rate = floatval($emp['overtime_rate_per_hour']) > 0 ? floatval($emp['overtime_rate_per_hour']) : PAYROLL_NORMAL_OT_RATE;
                                 $overtime_amount = calculate_overtime_amount(
                                     $overtime_hours,
                                     floatval($emp['base_salary']),
@@ -162,6 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     total_hours = VALUES(total_hours),
                     is_late = VALUES(is_late),
                     is_early_departure = VALUES(is_early_departure),
+                    is_absent = 0,
                     overtime_hours = VALUES(overtime_hours),
                     overtime_amount = VALUES(overtime_amount),
                     is_holiday = VALUES(is_holiday),
