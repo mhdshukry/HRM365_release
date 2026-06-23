@@ -13,7 +13,10 @@ $currentUser = [
     'username' => $_SESSION['username'],
     'role' => $_SESSION['role'] ?? 'employee',
     'employee_id' => $_SESSION['employee_id'] ?? null,
-    'department' => null
+    'department' => null,
+    'first_name' => null,
+    'last_name' => null,
+    'profile_photo' => null
 ];
 
 $userStmt = $pdo->prepare("SELECT username, role, full_name, employee_id, department FROM users WHERE id = ? AND status = 'Active'");
@@ -37,11 +40,14 @@ $_SESSION['employee_id'] = $freshUser['employee_id'];
 $_SESSION['full_name'] = $freshUser['full_name'];
 
 if ($currentUser['employee_id']) {
-    $authStmt = $pdo->prepare("SELECT department FROM employees WHERE id = ?");
+    $authStmt = $pdo->prepare("SELECT first_name, last_name, department, profile_photo FROM employees WHERE id = ?");
     $authStmt->execute([$currentUser['employee_id']]);
     $authEmp = $authStmt->fetch();
     if ($authEmp) {
+        $currentUser['first_name'] = $authEmp['first_name'];
+        $currentUser['last_name'] = $authEmp['last_name'];
         $currentUser['department'] = $authEmp['department'];
+        $currentUser['profile_photo'] = $authEmp['profile_photo'];
     }
 }
 ?>
