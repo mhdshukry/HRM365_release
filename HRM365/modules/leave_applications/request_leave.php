@@ -14,7 +14,14 @@ if ($currentUser['role'] === 'employee') {
 } else {
     $employees = $pdo->query("SELECT id, first_name, last_name, employee_code FROM employees ORDER BY first_name ASC")->fetchAll();
 }
-$leave_types = $pdo->query("SELECT id, name FROM leave_types WHERE status = 'Active' ORDER BY name ASC")->fetchAll();
+$shortLeaveTypeId = intval($pdo->query("SELECT id FROM leave_types WHERE status = 'Active' AND LOWER(name) LIKE '%short%' ORDER BY id ASC LIMIT 1")->fetchColumn() ?: 0);
+$leave_types = $pdo->query("
+    SELECT id, name, is_paid
+    FROM leave_types
+    WHERE status = 'Active'
+      AND LOWER(name) NOT LIKE '%short%'
+    ORDER BY is_paid DESC, name ASC
+")->fetchAll();
 
 include '../../includes/header.php'; 
 ?>
@@ -59,12 +66,16 @@ include '../../includes/header.php';
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem; font-weight: 500;">Leave Type <span style="color: var(--accent-danger);">*</span></label>
-                    <select name="leave_type_id" id="leaveTypeSelect" required style="width: 100%; padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none; transition: all 0.2s; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);">
+                    <input type="hidden" name="leave_type_id" id="leaveTypeHidden">
+                    <select name="normal_leave_type_id" id="leaveTypeSelect" required style="width: 100%; padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none; transition: all 0.2s; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);">
                         <option value="">Select leave type...</option>
                         <?php foreach ($leave_types as $lt): ?>
-                            <option value="<?php echo $lt['id']; ?>"><?php echo htmlspecialchars($lt['name']); ?></option>
+                            <option value="<?php echo $lt['id']; ?>" data-name="<?php echo htmlspecialchars(strtolower($lt['name'])); ?>" data-paid="<?php echo intval($lt['is_paid']); ?>"><?php echo htmlspecialchars($lt['name']); ?></option>
                         <?php endforeach; ?>
                     </select>
+                    <div id="shortLeaveNotice" style="display: none; margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.82rem;">
+                        Short Leave uses the Short Leave balance and consumes 0.25 day.
+                    </div>
                 </div>
             </div>
             
@@ -84,8 +95,8 @@ include '../../includes/header.php';
                 <div>
                     <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem; font-weight: 500;">Duration Type <span style="color: var(--accent-danger);">*</span></label>
                     <select name="duration_type" id="durationType" required style="width: 100%; padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);">
-                        <option value="multi">Multiple Days</option>
-                        <option value="1.00">Single Full Day (1.0)</option>
+                        <option value="multi">Leave - Multiple Days</option>
+                        <option value="1.00">Leave - Full Day (1.0)</option>
                         <option value="0.50">Half Day (0.5)</option>
                         <option value="0.25">Short Leave (0.25)</option>
                     </select>
@@ -131,6 +142,8 @@ include '../../includes/header.php';
 document.addEventListener('DOMContentLoaded', function() {
     const empSelect = document.getElementById('employeeSelect');
     const typeSelect = document.getElementById('leaveTypeSelect');
+    const typeHidden = document.getElementById('leaveTypeHidden');
+    const shortLeaveNotice = document.getElementById('shortLeaveNotice');
     const displayContainer = document.getElementById('balanceDisplayContainer');
     const display = document.getElementById('balanceDisplay');
     const submitBtn = document.getElementById('submitBtn');
@@ -138,33 +151,48 @@ document.addEventListener('DOMContentLoaded', function() {
     const durationType = document.getElementById('durationType');
     const endDateContainer = document.getElementById('endDateContainer');
     const endDate = document.getElementById('endDate');
+    const shortLeaveTypeId = <?php echo $shortLeaveTypeId; ?>;
     
     let currentBalances = [];
 
-    // Toggle End Date visibility based on Duration selection
-    durationType.addEventListener('change', function() {
-        if (this.value === 'multi') {
+    function updateEndDateVisibility() {
+        if (durationType.value === 'multi') {
             endDateContainer.style.display = 'block';
             endDate.required = true;
         } else {
             endDateContainer.style.display = 'none';
             endDate.required = false;
         }
-    });
+    }
+
+    function isShortLeaveDuration() {
+        return durationType.value === '0.25';
+    }
+
+    function syncLeaveTypeValue() {
+        if (isShortLeaveDuration()) {
+            typeHidden.value = shortLeaveTypeId ? String(shortLeaveTypeId) : '';
+            typeSelect.required = false;
+            typeSelect.disabled = true;
+            typeSelect.value = '';
+            typeSelect.closest('div').style.opacity = '0.65';
+            shortLeaveNotice.style.display = 'block';
+        } else {
+            typeHidden.value = typeSelect.value;
+            typeSelect.required = true;
+            typeSelect.disabled = false;
+            typeSelect.closest('div').style.opacity = '1';
+            shortLeaveNotice.style.display = 'none';
+        }
+    }
+
+    function updateDurationOptions() {
+        updateEndDateVisibility();
+        syncLeaveTypeValue();
+    }
 
     function updateSubmitButton() {
-        const typeId = parseInt(typeSelect.value);
-        if (!typeId) {
-            submitBtn.disabled = false;
-            return;
-        }
-        
-        const balRecord = currentBalances.find(b => parseInt(b.type_id) === typeId);
-        if (balRecord && parseFloat(balRecord.remaining_days) > 0) {
-            submitBtn.disabled = false;
-        } else {
-            submitBtn.disabled = true;
-        }
+        submitBtn.disabled = false;
     }
 
     function fetchBalances() {
@@ -208,7 +236,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     empSelect.addEventListener('change', fetchBalances);
-    typeSelect.addEventListener('change', updateSubmitButton);
+    typeSelect.addEventListener('change', function() {
+        syncLeaveTypeValue();
+        updateSubmitButton();
+    });
+    durationType.addEventListener('change', function() {
+        updateEndDateVisibility();
+        syncLeaveTypeValue();
+        updateSubmitButton();
+    });
+    updateDurationOptions();
 });
 </script>
 
