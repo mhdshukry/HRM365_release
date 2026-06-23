@@ -1,5 +1,7 @@
 # HRM365
 
+<img width="959" height="500" alt="Image" src="https://github.com/user-attachments/assets/b7ce8a55-cd53-47e1-b837-063dc0363b11" />
+
 HRM365 is a PHP/MySQL human resource management system designed for employee administration, attendance tracking, leave management, payroll support, calendars, meetings, reports, and ZKTeco biometric device integration.
 
 ## Features
