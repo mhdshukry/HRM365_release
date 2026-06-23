@@ -47,8 +47,9 @@ include '../../includes/header.php';
                     </td>
                     <td>
                         <span style="background: rgba(16, 185, 129, 0.1); color: var(--accent-success); padding: 0.2rem 0.6rem; border-radius: 4px; font-weight: 600; font-size: 0.85rem;">
-                            <?php echo number_format($p['overtime_rate_per_hour'], 2); ?>x Base Hourly Rate
+                            <?php echo number_format($p['overtime_rate_per_hour'], 2); ?>x Standard Hourly Rate
                         </span>
+                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.35rem;">Standard hourly = Basic Salary / 240</div>
                     </td>
                     <td>
                         <?php if ($p['status'] === 'Active'): ?>
