@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('HRM365 Application Initialized');
 
+    initializeMobileNavigation();
     initializeTablePagination();
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -20,6 +21,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 100 * index);
     });
 });
+
+function initializeMobileNavigation() {
+    const sidebar = document.querySelector('.sidebar');
+    const toggle = document.querySelector('.mobile-menu-toggle');
+
+    if (!sidebar || !toggle) {
+        return;
+    }
+
+    let overlay = document.querySelector('.mobile-sidebar-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'mobile-sidebar-overlay';
+        document.body.appendChild(overlay);
+    }
+
+    function setOpen(isOpen) {
+        document.body.classList.toggle('sidebar-open', isOpen);
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        toggle.innerHTML = isOpen ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
+    }
+
+    toggle.addEventListener('click', () => {
+        setOpen(!document.body.classList.contains('sidebar-open'));
+    });
+
+    overlay.addEventListener('click', () => setOpen(false));
+
+    sidebar.addEventListener('click', event => {
+        if (event.target.closest('a.nav-item')) {
+            setOpen(false);
+        }
+    });
+
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+            setOpen(false);
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 900) {
+            setOpen(false);
+        }
+    });
+}
 
 function initializeTablePagination() {
     const pageSize = 10;
