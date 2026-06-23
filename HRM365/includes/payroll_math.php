@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/attendance_math.php';
+require_once __DIR__ . '/leave_math.php';
 
 function payroll_date_range(string $start_date, string $end_date): array
 {
@@ -18,18 +19,28 @@ function payroll_date_range(string $start_date, string $end_date): array
 
 function calculate_leave_overlap_days(array $leave, string $start_date, string $end_date): float
 {
-    $leaveStart = max(strtotime($leave['start_date']), strtotime($start_date));
-    $leaveEnd = min(strtotime($leave['end_date'] ?: $leave['start_date']), strtotime($end_date));
+    $rawLeaveStart = strtotime($leave['start_date']);
+    $rawLeaveEnd = strtotime($leave['end_date'] ?: $leave['start_date']);
+    $leaveStart = max($rawLeaveStart, strtotime($start_date));
+    $leaveEnd = min($rawLeaveEnd, strtotime($end_date));
 
     if ($leaveStart === false || $leaveEnd === false || $leaveEnd < $leaveStart) {
         return 0.00;
     }
 
-    if ($leave['start_date'] === ($leave['end_date'] ?: $leave['start_date'])) {
-        return floatval($leave['total_days']);
+    $totalDays = floatval($leave['total_days']);
+    if ($rawLeaveStart === $rawLeaveEnd) {
+        return $totalDays;
     }
 
-    return floatval(intdiv($leaveEnd - $leaveStart, 86400) + 1);
+    $leaveCalendarDays = floatval(intdiv($rawLeaveEnd - $rawLeaveStart, 86400) + 1);
+    $overlapCalendarDays = floatval(intdiv($leaveEnd - $leaveStart, 86400) + 1);
+
+    if ($leaveCalendarDays <= 0) {
+        return 0.00;
+    }
+
+    return round($totalDays * ($overlapCalendarDays / $leaveCalendarDays), 2);
 }
 
 function calculate_employee_leave_days(PDO $pdo, int $employee_id, string $start_date, string $end_date, ?bool $is_paid = null): float
@@ -42,7 +53,7 @@ function calculate_employee_leave_days(PDO $pdo, int $employee_id, string $start
     }
 
     $stmt = $pdo->prepare("
-        SELECT la.start_date, COALESCE(la.end_date, la.start_date) AS end_date, la.total_days
+        SELECT la.start_date, COALESCE(la.end_date, la.start_date) AS end_date, la.total_days, lt.name AS leave_type_name
         FROM leave_applications la
         JOIN leave_types lt ON la.leave_type_id = lt.id
         WHERE la.employee_id = ?
@@ -54,8 +65,21 @@ function calculate_employee_leave_days(PDO $pdo, int $employee_id, string $start
     $stmt->execute($params);
 
     $days = 0.00;
+    $shortLeaveCountsByMonth = [];
     foreach ($stmt->fetchAll() as $leave) {
-        $days += calculate_leave_overlap_days($leave, $start_date, $end_date);
+        $overlapDays = calculate_leave_overlap_days($leave, $start_date, $end_date);
+        if (is_short_leave_name($leave['leave_type_name'] ?? '')) {
+            $monthKey = date('Y-m', strtotime($leave['start_date']));
+            $shortLeaveCountsByMonth[$monthKey] = ($shortLeaveCountsByMonth[$monthKey] ?? 0)
+                + (int) round($overlapDays / SHORT_LEAVE_UNIT_DAYS);
+            continue;
+        }
+
+        $days += $overlapDays;
+    }
+
+    foreach ($shortLeaveCountsByMonth as $shortLeaveCount) {
+        $days += calculate_short_leave_charge_from_count($shortLeaveCount);
     }
 
     return round($days, 2);
@@ -163,7 +187,7 @@ function calculate_employee_overtime_summary(PDO $pdo, int $employee_id, float $
         SELECT r.overtime_hours,
                COALESCE(rs.start_time, es.start_time) AS start_time,
                COALESCE(rs.end_time, es.end_time) AS end_time,
-               COALESCE(rp.overtime_rate_per_hour, ep.overtime_rate_per_hour, 1.00) AS overtime_rate_per_hour
+               COALESCE(rp.overtime_rate_per_hour, ep.overtime_rate_per_hour, " . PAYROLL_NORMAL_OT_RATE . ") AS overtime_rate_per_hour
         FROM attendance_records r
         LEFT JOIN employees e ON r.employee_id = e.id
         LEFT JOIN shifts rs ON r.shift_id = rs.id
@@ -180,7 +204,12 @@ function calculate_employee_overtime_summary(PDO $pdo, int $employee_id, float $
     $hours = 0.00;
     $amount = 0.00;
     foreach ($stmt->fetchAll() as $row) {
-        $rowHours = floatval($row['overtime_hours']);
+        $remainingMonthlyHours = PAYROLL_MAX_OT_HOURS_PER_MONTH - $hours;
+        if ($remainingMonthlyHours <= 0) {
+            break;
+        }
+
+        $rowHours = min(floatval($row['overtime_hours']), $remainingMonthlyHours);
         $hours += $rowHours;
         $amount += calculate_overtime_amount(
             $rowHours,
@@ -234,7 +263,7 @@ function generate_payroll_for_month(PDO $pdo, string $month): int
         $overtime_hours = $overtime['hours'];
         $overtime_amount = $overtime['amount'];
 
-        $daily_rate = $base_salary / 22;
+        $daily_rate = $base_salary / PAYROLL_STANDARD_MONTHLY_DAYS;
         $deductions = round($unpaid_days * $daily_rate, 2);
         $net_salary = round(($base_salary + $overtime_amount) - $deductions, 2);
 
