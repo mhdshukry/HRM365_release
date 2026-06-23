@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     require_once 'includes/audit.php';
                     log_action($pdo, $user['id'], 'LOGIN_SUCCESS', "User authenticated successfully via Web Portal.");
                     
-                    header('Location: index.php');
+                    header('Location: ' . app_url('modules/dashboard/index.php'));
                     exit();
                 }
             } else {
