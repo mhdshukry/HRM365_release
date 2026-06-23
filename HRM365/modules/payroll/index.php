@@ -38,7 +38,7 @@ include '../../includes/header.php';
 <div class="page-header">
     <div>
         <h1 class="page-title">Payroll Engine</h1>
-        <div class="page-subtitle">Automatically calculates Net Salary based on Biometric Overtime and Unpaid Leaves.</div>
+        <div class="page-subtitle">Calculates OT using Basic Salary / 240 hours, caps OT at 60 hours, and deducts no-pay leave proportionately.</div>
     </div>
     
     <div style="display: flex; gap: 1rem; align-items: center;">
