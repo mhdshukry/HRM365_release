@@ -90,7 +90,7 @@ include '../../includes/header.php';
             </div>
             <div>
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Max Carry Forward</label>
-                <input type="number" name="carry_forward_limit" value="<?php echo intval($policy['carry_forward_limit']); ?>" min="0" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+                <input type="number" step="0.25" name="carry_forward_limit" value="<?php echo htmlspecialchars($policy['carry_forward_limit']); ?>" min="0" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
             </div>
         </div>
 
@@ -98,11 +98,11 @@ include '../../includes/header.php';
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
             <div>
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Min Days / Request *</label>
-                <input type="number" name="min_days_per_application" required value="<?php echo intval($policy['min_days_per_application']); ?>" min="1" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+                <input type="number" step="0.25" name="min_days_per_application" required value="<?php echo htmlspecialchars($policy['min_days_per_application']); ?>" min="0.25" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
             </div>
             <div>
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Max Days / Request *</label>
-                <input type="number" name="max_days_per_application" required value="<?php echo intval($policy['max_days_per_application']); ?>" min="1" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+                <input type="number" step="0.25" name="max_days_per_application" required value="<?php echo htmlspecialchars($policy['max_days_per_application']); ?>" min="0.25" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
             </div>
             <div>
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Policy Status</label>
