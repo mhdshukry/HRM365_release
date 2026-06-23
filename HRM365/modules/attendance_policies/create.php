@@ -55,8 +55,8 @@ include '../../includes/header.php';
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
             <div>
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Overtime Rate Multiplier *</label>
-                <input type="number" step="0.01" name="overtime_rate_per_hour" required value="1.00" min="0" placeholder="e.g. 1.5" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 2px solid var(--accent-primary); background: var(--bg-secondary); color: var(--text-primary); outline: none; font-weight: bold;">
-                <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">Multiplier applied to base hourly pay (e.g., 1.5 = Time and a half).</small>
+                <input type="number" step="0.01" name="overtime_rate_per_hour" required value="1.50" min="0" placeholder="e.g. 1.5" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 2px solid var(--accent-primary); background: var(--bg-secondary); color: var(--text-primary); outline: none; font-weight: bold;">
+                <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">Multiplier applied to base hourly pay. Normal OT is 1.5x; double OT is 2x.</small>
             </div>
             <div>
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Policy Status</label>
