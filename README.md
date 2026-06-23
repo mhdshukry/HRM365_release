@@ -1,6 +1,4 @@
-# HRM365
-
-<img width="959" height="500" alt="Image" src="https://github.com/user-attachments/assets/b7ce8a55-cd53-47e1-b837-063dc0363b11" />
+# HRM365 Release
 
 HRM365 is a PHP/MySQL human resource management system designed for employee administration, attendance tracking, leave management, payroll support, calendars, meetings, reports, and ZKTeco biometric device integration.
 
@@ -60,10 +58,10 @@ HRM365_Release/
 
 2. Start Apache and MySQL from XAMPP.
 
-3. Open the app in your browser:
+3. Open the dashboard in your browser:
 
    ```text
-   http://localhost/HRM365_Release/HRM365/
+   http://localhost/HRM365_Release/HRM365/modules/dashboard/index.php
    ```
 
 4. The application connects to MySQL using the default local XAMPP credentials in `HRM365/includes/db.php`:
