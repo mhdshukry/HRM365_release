@@ -1,5 +1,25 @@
 <?php
 
+if (!defined('PAYROLL_STANDARD_MONTHLY_HOURS')) {
+    define('PAYROLL_STANDARD_MONTHLY_HOURS', 240.00);
+}
+
+if (!defined('PAYROLL_STANDARD_MONTHLY_DAYS')) {
+    define('PAYROLL_STANDARD_MONTHLY_DAYS', 30.00);
+}
+
+if (!defined('PAYROLL_MAX_OT_HOURS_PER_MONTH')) {
+    define('PAYROLL_MAX_OT_HOURS_PER_MONTH', 60.00);
+}
+
+if (!defined('PAYROLL_NORMAL_OT_RATE')) {
+    define('PAYROLL_NORMAL_OT_RATE', 1.50);
+}
+
+if (!defined('PAYROLL_DOUBLE_OT_RATE')) {
+    define('PAYROLL_DOUBLE_OT_RATE', 2.00);
+}
+
 function calculate_shift_hours(?string $start_time, ?string $end_time): float
 {
     if (empty($start_time) || empty($end_time)) {
@@ -27,9 +47,8 @@ function calculate_overtime_amount(float $overtime_hours, float $base_salary, ?s
         return 0.00;
     }
 
-    $shift_hours = calculate_shift_hours($start_time, $end_time);
-    $hourly_rate = $base_salary / (22 * $shift_hours);
-    $rate = $policy_rate > 0 ? $policy_rate : 1.00;
+    $hourly_rate = $base_salary / PAYROLL_STANDARD_MONTHLY_HOURS;
+    $rate = $policy_rate > 0 ? $policy_rate : PAYROLL_NORMAL_OT_RATE;
 
     return round($overtime_hours * $hourly_rate * $rate, 2);
 }
