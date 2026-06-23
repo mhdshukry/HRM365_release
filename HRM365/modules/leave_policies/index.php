@@ -1,6 +1,7 @@
 <?php 
 require_once '../../includes/db.php';
 require_once '../../includes/auth.php';
+require_once '../../includes/leave_math.php';
 
 if (!in_array($currentUser['role'], ['admin', 'HR', 'manager', 'employee'])) {
     die("Unauthorized access.");
@@ -57,11 +58,11 @@ include '../../includes/header.php';
                     </td>
                     <td>
                         <div style="font-size: 0.9rem;"><strong><?php echo floatval($p['accrual_rate']); ?></strong> days / <?php echo htmlspecialchars($p['accrual_type']); ?></div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">Max Roll-over: <?php echo intval($p['carry_forward_limit']); ?> days</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Max Roll-over: <?php echo htmlspecialchars(format_leave_days(floatval($p['carry_forward_limit']))); ?> days</div>
                     </td>
                     <td>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary);">Min: <strong><?php echo intval($p['min_days_per_application']); ?></strong> day(s)</div>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary);">Max: <strong><?php echo intval($p['max_days_per_application']); ?></strong> day(s)</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">Min: <strong><?php echo htmlspecialchars(format_leave_days(floatval($p['min_days_per_application']))); ?></strong> day(s)</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">Max: <strong><?php echo htmlspecialchars(format_leave_days(floatval($p['max_days_per_application']))); ?></strong> day(s)</div>
                     </td>
                     <td>
                         <?php if ($p['status'] === 'Active'): ?>
