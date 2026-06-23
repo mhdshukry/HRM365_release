@@ -78,7 +78,7 @@ if ($expectedEnd !== null) {
                 floatval($record['base_salary']),
                 $record['start_time'],
                 $record['end_time'],
-                floatval($record['overtime_rate_per_hour'] ?? 1)
+                floatval($record['overtime_rate_per_hour'] ?? PAYROLL_NORMAL_OT_RATE)
             );
         }
     }
@@ -90,7 +90,7 @@ $status = $calendarFlags['is_holiday'] ? 'Holiday' : 'Present';
 $update = $pdo->prepare("
     UPDATE attendance_records
     SET date = ?, clock_in = ?, clock_out = ?, total_hours = ?, is_late = ?, is_early_departure = ?,
-        overtime_hours = ?, overtime_amount = ?, is_holiday = ?, is_weekend = ?, status = ?, notes = ?
+        is_absent = 0, overtime_hours = ?, overtime_amount = ?, is_holiday = ?, is_weekend = ?, status = ?, notes = ?
     WHERE id = ?
 ");
 $update->execute([
