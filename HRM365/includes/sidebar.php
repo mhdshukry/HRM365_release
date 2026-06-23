@@ -1,4 +1,7 @@
-<?php /** @var array<string, mixed> $currentUser */ ?>
+<?php
+require_once __DIR__ . '/avatar.php';
+/** @var array<string, mixed> $currentUser */
+?>
 <aside class="sidebar">
     <div class="sidebar-header">
         <a href="<?php echo app_url('modules/dashboard/index.php'); ?>" class="sidebar-logo">
@@ -33,10 +36,12 @@
         <?php if (in_array($currentUser['role'], ['admin', 'manager', 'HR'])): ?>
         <!-- ORGANIZATION -->
         <div class="nav-section-label">Organization</div>
+        <?php if (in_array($currentUser['role'], ['admin', 'HR'])): ?>
         <a href="<?php echo app_url('modules/branches/index.php'); ?>" class="nav-item <?php echo strpos($uri, '/modules/branches') !== false ? 'active' : ''; ?>">
             <i class="fas fa-building nav-icon"></i>
             <span>Branches</span>
         </a>
+        <?php endif; ?>
         <a href="<?php echo app_url('modules/employees/index.php'); ?>" class="nav-item <?php echo strpos($uri, '/modules/employees') !== false ? 'active' : ''; ?>">
             <i class="fas fa-users nav-icon"></i>
             <span>Employees</span>
@@ -170,7 +175,7 @@
 
     <div class="sidebar-footer">
         <div class="sidebar-user">
-            <div class="avatar"><?php echo strtoupper(substr($currentUser['username'], 0, 2)); ?></div>
+            <?php echo render_avatar($currentUser['first_name'] ?? null, $currentUser['last_name'] ?? null, $currentUser['profile_photo'] ?? null, $currentUser['username']); ?>
             <div class="sidebar-user-info">
                 <div class="sidebar-user-name"><?php echo htmlspecialchars($_SESSION['full_name'] ?? $currentUser['username']); ?></div>
                 <div class="sidebar-user-role"><?php echo htmlspecialchars($currentUser['role']); ?></div>
