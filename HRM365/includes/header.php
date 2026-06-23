@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/avatar.php';
 
 $notificationCount = 0;
 try {
@@ -38,6 +39,10 @@ $stylesheetVersion = is_file($stylesheetPath) ? filemtime($stylesheetPath) : tim
     
     <div class="main-wrapper">
         <header class="top-header">
+            <button type="button" class="mobile-menu-toggle" aria-label="Open navigation" aria-controls="sidebarNav" aria-expanded="false">
+                <i class="fas fa-bars"></i>
+            </button>
+
             <div class="header-search">
                 <i class="fas fa-search text-secondary"></i>
                 <input type="text" id="globalSearchInput" placeholder="Search employees, leaves..." autocomplete="off">
@@ -53,7 +58,7 @@ $stylesheetVersion = is_file($stylesheetPath) ? filemtime($stylesheetPath) : tim
                 </a>
                 <div class="user-profile" style="display: flex; align-items: center; gap: 1rem;">
                     <a href="<?php echo app_url('profile.php'); ?>" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: inherit;">
-                        <div class="avatar"><?php echo strtoupper(substr($currentUser['username'], 0, 2)); ?></div>
+                        <?php echo render_avatar($currentUser['first_name'] ?? null, $currentUser['last_name'] ?? null, $currentUser['profile_photo'] ?? null, $currentUser['username']); ?>
                         <div class="user-info">
                             <div style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary);">
                                 <?php echo htmlspecialchars($_SESSION['full_name'] ?? $currentUser['username']); ?>
