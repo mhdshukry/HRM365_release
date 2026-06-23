@@ -15,14 +15,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $accrual_type = $_POST['accrual_type'] ?? '';
     $accrual_rate = max(0, floatval($_POST['accrual_rate'] ?? 0));
-    $carry_forward_limit = max(0, intval($_POST['carry_forward_limit'] ?? 0));
+    $carry_forward_limit = max(0, floatval($_POST['carry_forward_limit'] ?? 0));
     
-    $min_days = intval($_POST['min_days_per_application'] ?? 1);
-    $max_days = intval($_POST['max_days_per_application'] ?? 365);
+    $min_days = max(0.25, floatval($_POST['min_days_per_application'] ?? 1));
+    $max_days = max(0.25, floatval($_POST['max_days_per_application'] ?? 365));
     
     $status = $_POST['status'] ?? 'Active';
 
-    if ($min_days < 1) $min_days = 1;
     if ($max_days < $min_days) $max_days = $min_days;
 
     if ($name === '') {
