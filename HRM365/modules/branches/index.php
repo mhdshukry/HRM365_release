@@ -9,7 +9,8 @@ if (!in_array($currentUser['role'], ['admin', 'HR'])) {
 
 $stmt = $pdo->query("
     SELECT b.*,
-           (SELECT COUNT(*) FROM employees e WHERE e.branch_id = b.id) AS employee_count
+           (SELECT COUNT(*) FROM employees e WHERE e.branch_id = b.id) AS employee_count,
+           (SELECT COUNT(*) FROM biometric_punches bp WHERE bp.terminal_sn = b.biometric_terminal_sn AND DATE(bp.punch_time) = CURDATE()) AS today_punch_count
     FROM branches b
     ORDER BY b.created_at DESC
 ");
@@ -36,7 +37,9 @@ include '../../includes/header.php';
                     <th>Branch Name</th>
                     <th>Email</th>
                     <th>Phone</th>
+                    <th>Machine SN</th>
                     <th>Employees</th>
+                    <th>Today Punches</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -50,7 +53,9 @@ include '../../includes/header.php';
                     </td>
                     <td><?php echo htmlspecialchars($b['email']); ?></td>
                     <td><?php echo htmlspecialchars($b['phone']); ?></td>
+                    <td><code style="background: var(--bg-hover); padding: 0.2rem 0.4rem; border-radius: 4px;"><?php echo htmlspecialchars($b['biometric_terminal_sn'] ?: 'Not set'); ?></code></td>
                     <td><?php echo intval($b['employee_count']); ?></td>
+                    <td><?php echo intval($b['today_punch_count']); ?></td>
                     <td>
                         <?php if ($b['status'] === 'Active'): ?>
                             <span class="status-badge status-active">Active</span>
@@ -60,6 +65,7 @@ include '../../includes/header.php';
                     </td>
                     <td>
                         <div style="display: flex; gap: 0.5rem;">
+                            <a href="view.php?id=<?php echo $b['id']; ?>" class="action-btn" style="color: var(--accent-primary);" title="Branch Dashboard"><i class="fas fa-chart-line"></i></a>
                             <!-- Toggle Status Form -->
                             <form action="toggle_status.php" method="POST" style="margin: 0;">
                                 <input type="hidden" name="id" value="<?php echo $b['id']; ?>">
@@ -78,7 +84,7 @@ include '../../includes/header.php';
                 <?php endforeach; ?>
                 <?php if (empty($branches)): ?>
                 <tr>
-                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">No branches have been added yet.</td>
+                    <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">No branches have been added yet.</td>
                 </tr>
                 <?php endif; ?>
             </tbody>

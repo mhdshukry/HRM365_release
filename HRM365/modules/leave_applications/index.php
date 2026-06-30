@@ -2,24 +2,40 @@
 require_once '../../includes/db.php';
 require_once '../../includes/auth.php';
 
+$branch_filter = intval($_GET['branch_id'] ?? 0);
+$branches = [];
+if (in_array($currentUser['role'], ['admin', 'HR'], true)) {
+    $branches = $pdo->query("SELECT id, name FROM branches WHERE status = 'Active' ORDER BY name ASC")->fetchAll();
+}
+
 $query = "
     SELECT la.*, 
            e.first_name, e.last_name, e.employee_code, 
+           b.name AS branch_name,
            lt.name as leave_name,
            ce.first_name as cover_first, ce.last_name as cover_last
     FROM leave_applications la
     JOIN employees e ON la.employee_id = e.id
+    LEFT JOIN branches b ON e.branch_id = b.id
     JOIN leave_types lt ON la.leave_type_id = lt.id
     LEFT JOIN employees ce ON la.covering_employee_id = ce.id
 ";
 $params = [];
+$where = [];
 
 if ($currentUser['role'] === 'employee') {
-    $query .= " WHERE la.employee_id = ?";
+    $where[] = "la.employee_id = ?";
     $params[] = $currentUser['employee_id'] ?? 0;
 } elseif ($currentUser['role'] === 'manager') {
-    $query .= " WHERE e.department = ?";
+    $where[] = "e.department = ?";
     $params[] = $currentUser['department'] ?? '';
+} elseif (in_array($currentUser['role'], ['admin', 'HR'], true) && $branch_filter > 0) {
+    $where[] = "e.branch_id = ?";
+    $params[] = $branch_filter;
+}
+
+if ($where) {
+    $query .= " WHERE " . implode(' AND ', $where);
 }
 
 $query .= " ORDER BY la.created_at DESC";
@@ -40,6 +56,23 @@ include '../../includes/header.php';
         <i class="fas fa-plus"></i> Request Leave
     </a>
 </div>
+
+<?php if (in_array($currentUser['role'], ['admin', 'HR'], true)): ?>
+    <div class="card" style="margin-bottom: 1rem; padding: 1rem;">
+        <form action="" method="GET" style="display: flex; gap: 0.75rem; align-items: end; justify-content: flex-end;">
+            <div>
+                <label style="display: block; margin-bottom: 0.4rem; color: var(--text-secondary); font-size: 0.85rem;">Branch</label>
+                <select name="branch_id" onchange="this.form.submit()" style="padding: 0.6rem; min-width: 220px; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+                    <option value="0">All Branches</option>
+                    <?php foreach ($branches as $branch): ?>
+                        <option value="<?php echo intval($branch['id']); ?>" <?php echo $branch_filter === intval($branch['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($branch['name']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <a href="index.php" class="btn" style="background: var(--bg-hover); color: var(--text-primary);"><i class="fas fa-times"></i></a>
+        </form>
+    </div>
+<?php endif; ?>
 
 <?php if (isset($_GET['error']) && $_GET['error'] === 'insufficient_balance'): ?>
     <div style="background: rgba(239, 68, 68, 0.1); color: var(--accent-danger); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; border: 1px solid rgba(239, 68, 68, 0.2); display: flex; align-items: center; gap: 0.75rem;">
@@ -68,6 +101,7 @@ include '../../includes/header.php';
                     <td style="vertical-align: middle;">
                         <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.2rem;"><?php echo htmlspecialchars($app['first_name'] . ' ' . $app['last_name']); ?></div>
                         <div style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace; background: var(--bg-hover); padding: 0.1rem 0.4rem; border-radius: 4px; display: inline-block; border: 1px solid var(--border-color);"><?php echo htmlspecialchars($app['employee_code']); ?></div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem;"><?php echo htmlspecialchars($app['branch_name'] ?? 'No Branch'); ?></div>
                     </td>
                     <td style="vertical-align: middle;">
                         <span style="color: var(--accent-primary); font-weight: 600; font-size: 0.9rem;"><i class="fas fa-tag" style="font-size: 0.8rem; margin-right: 0.3rem; opacity: 0.7;"></i> <?php echo htmlspecialchars($app['leave_name']); ?></span>

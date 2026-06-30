@@ -294,6 +294,7 @@ function showEventDetails(event) {
     } else if (props.type === 'Meeting') {
         dHtml = `
             <div style="margin-bottom: 0.8rem;"><strong style="color: var(--text-secondary);">Organizer:</strong> ${props.organizer}</div>
+            <div style="margin-bottom: 0.8rem;"><strong style="color: var(--text-secondary);">Attendees:</strong> ${props.attendees || 'No attendees selected'}</div>
             <div style="margin-bottom: 0.8rem;"><strong style="color: var(--text-secondary);">Location/Link:</strong> ${renderLocation(props.location)}</div>
             <div style="margin-bottom: 0.8rem;"><strong style="color: var(--text-secondary);">Status:</strong> ${props.status}</div>
             <div style="margin-top: 1rem;"><strong style="color: var(--text-secondary);">Agenda/Description:</strong><br>${props.description || 'No description provided.'}</div>

@@ -13,7 +13,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'company_name' => trim($_POST['company_name'] ?? ''),
         'timezone' => trim($_POST['timezone'] ?? ''),
         'currency' => trim($_POST['currency'] ?? ''),
-        'holiday_country' => strtoupper(trim($_POST['holiday_country'] ?? 'LK'))
+        'holiday_country' => strtoupper(trim($_POST['holiday_country'] ?? 'LK')),
+        'payroll_enable_overtime' => isset($_POST['payroll_enable_overtime']) ? '1' : '0',
+        'payroll_enable_epf' => isset($_POST['payroll_enable_epf']) ? '1' : '0',
+        'payroll_enable_etf' => isset($_POST['payroll_enable_etf']) ? '1' : '0',
+        'sms_enabled' => isset($_POST['sms_enabled']) ? '1' : '0',
+        'sms_provider' => 'textlk',
+        'sms_api_url' => 'https://app.text.lk/api/v3/sms/send',
+        'sms_sender_name' => trim($_POST['sms_sender_name'] ?? 'Pos365.lk'),
+        'epf_employee_rate' => number_format(max(0, min(100, floatval($_POST['epf_employee_rate'] ?? 8))), 2, '.', ''),
+        'epf_employer_rate' => number_format(max(0, min(100, floatval($_POST['epf_employer_rate'] ?? 12))), 2, '.', ''),
+        'etf_employer_rate' => number_format(max(0, min(100, floatval($_POST['etf_employer_rate'] ?? 3))), 2, '.', '')
     ];
 
     $allowedTimezones = ['Asia/Colombo', 'Asia/Kolkata', 'UTC', 'America/New_York'];
@@ -32,6 +42,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!in_array($settings['holiday_country'], $allowedHolidayCountries, true)) {
         $settings['holiday_country'] = $settings['timezone'] === 'Asia/Colombo' ? 'LK' : 'US';
+    }
+
+    if ($settings['sms_sender_name'] === '') {
+        $settings['sms_sender_name'] = 'Pos365.lk';
+    }
+
+    $newSmsApiKey = trim($_POST['sms_api_key'] ?? '');
+    if ($newSmsApiKey !== '') {
+        $settings['sms_api_key'] = $newSmsApiKey;
     }
 
     try {

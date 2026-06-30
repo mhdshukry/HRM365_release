@@ -35,8 +35,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $shift_id = $emp['shift_id'];
     $policy_id = $emp['attendance_policy_id'];
     $branchId = $emp['branch_id'] !== null ? intval($emp['branch_id']) : null;
-    $calendarFlags = get_attendance_calendar_flags($pdo, $today, $branchId);
-    $blockStatus = get_attendance_block_status($pdo, intval($emp_id), $today, $branchId);
+    $dayContext = get_attendance_day_context($pdo, intval($emp_id), $today, $branchId, $shift_id !== null ? intval($shift_id) : null);
+    if ($dayContext['shift']) {
+        $shift_id = intval($dayContext['shift']['id']);
+        $emp['start_time'] = $dayContext['shift']['start_time'];
+        $emp['end_time'] = $dayContext['shift']['end_time'];
+    } else {
+        $shift_id = null;
+        $emp['start_time'] = null;
+        $emp['end_time'] = null;
+    }
+    $calendarFlags = $dayContext['calendar'];
+    $blockStatus = $dayContext['block_status'];
     
     // Core Engine Math Variables
     $is_late = 0;
@@ -70,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending')
             ");
             $insert->execute([$emp_id, $shift_id, $policy_id, $today, $now, $is_late, $calendarFlags['is_holiday'], $calendarFlags['is_weekend']]);
-            log_action($pdo, $emp_id, 'ATTENDANCE_CLOCK_IN', "Clocked in at {$currentTime}" . ($is_late ? " (Flagged Late)" : ""));
+            log_action($pdo, $emp_id, 'ATTENDANCE_SIGN_IN', "Signed in at {$currentTime}" . ($is_late ? " (Flagged Late)" : ""));
         } catch (\PDOException $e) {
             die("Error clocking in: " . $e->getMessage());
         }
@@ -99,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 // Evaluate Overtime Math
-                // If they clocked out AFTER their shift end time + some buffer, calculate OT
+                // If they sign out after their shift end time plus a small buffer, calculate OT.
                 if ($expected_end !== null && $clock_out_time > $expected_end) {
                     $ot_seconds = $clock_out_time - $expected_end;
                     $raw_ot_hours = round($ot_seconds / 3600, 2);
@@ -128,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ");
             $update->execute([$now, $total_hours, $is_early_departure, $overtime_hours, $overtime_amount, $calendarFlags['is_holiday'], $calendarFlags['is_weekend'], $final_status, $record['id']]);
             
-            log_action($pdo, $emp_id, 'ATTENDANCE_CLOCK_OUT', "Clocked out at {$currentTime}. Total Hours: {$total_hours}h");
+            log_action($pdo, $emp_id, 'ATTENDANCE_SIGN_OUT', "Signed out at {$currentTime}. Total Hours: {$total_hours}h");
         }
     }
 }

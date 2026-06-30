@@ -33,11 +33,15 @@ $employeeSql .= " ORDER BY first_name ASC LIMIT 5";
 $stmt = $pdo->prepare($employeeSql);
 $stmt->execute($params);
 foreach ($stmt->fetchAll() as $employee) {
+    $employeeUrl = $currentUser['role'] === 'employee'
+        ? app_url('profile.php')
+        : app_url('modules/employees/edit.php?id=' . $employee['id']);
+
     $results[] = [
         'type' => 'Employee',
         'title' => $employee['first_name'] . ' ' . $employee['last_name'],
         'meta' => $employee['employee_code'] . ' · ' . ($employee['department'] ?: 'No department'),
-        'url' => app_url('modules/employees/edit.php?id=' . $employee['id']),
+        'url' => $employeeUrl,
     ];
 }
 

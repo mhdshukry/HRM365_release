@@ -39,6 +39,20 @@ include '../../includes/header.php';
     <?php endif; ?>
 </div>
 
+<?php if (!empty($_GET['success'])): ?>
+    <div style="background: rgba(16, 185, 129, 0.1); color: var(--accent-success); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; border: 1px solid rgba(16, 185, 129, 0.2); display: flex; align-items: center; gap: 0.75rem;">
+        <i class="fas fa-check-circle"></i>
+        <span><?php echo htmlspecialchars($_GET['success']); ?></span>
+    </div>
+<?php endif; ?>
+
+<?php if (!empty($_GET['error'])): ?>
+    <div style="background: rgba(239, 68, 68, 0.1); color: var(--accent-danger); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; border: 1px solid rgba(239, 68, 68, 0.2); display: flex; align-items: flex-start; gap: 0.75rem;">
+        <i class="fas fa-exclamation-circle" style="margin-top: 0.15rem;"></i>
+        <span><?php echo htmlspecialchars($_GET['error']); ?></span>
+    </div>
+<?php endif; ?>
+
 <div class="card">
     <div class="table-container">
         <table class="table">

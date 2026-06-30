@@ -43,6 +43,7 @@ $branches = $branchStmt->fetchAll();
 $shifts = $pdo->query("SELECT id, name FROM shifts WHERE status = 'Active' ORDER BY name ASC")->fetchAll();
 $policies = $pdo->query("SELECT id, name FROM attendance_policies WHERE status = 'Active' ORDER BY name ASC")->fetchAll();
 $currency = $pdo->query("SELECT setting_value FROM system_settings WHERE setting_key = 'currency'")->fetchColumn() ?: 'LKR';
+$employeeIdNumber = preg_replace('/^EMP-/i', '', $employee['employee_code'] ?? '');
 
 function selected_value($actual, $expected): string
 {
@@ -85,6 +86,10 @@ include '../../includes/header.php';
                 <input type="text" name="phone" value="<?php echo htmlspecialchars($employee['phone'] ?? ''); ?>" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
             </div>
             <div>
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">NIC Number</label>
+                <input type="text" name="nic_number" value="<?php echo htmlspecialchars($employee['nic_number'] ?? ''); ?>" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+            </div>
+            <div>
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Date of Birth</label>
                 <input type="date" name="date_of_birth" value="<?php echo htmlspecialchars($employee['date_of_birth'] ?? ''); ?>" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none; color-scheme: light;">
             </div>
@@ -106,12 +111,11 @@ include '../../includes/header.php';
         <h3 class="mb-4" style="color: var(--accent-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;"><i class="fas fa-briefcase"></i> Employment, Payroll & Attendance</h3>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
             <div>
-                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Employee Code *</label>
-                <input type="text" name="employee_code" required value="<?php echo htmlspecialchars($employee['employee_code']); ?>" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
-            </div>
-            <div>
-                <label style="display: block; margin-bottom: 0.5rem; color: var(--accent-warning); font-size: 0.9rem;"><i class="fas fa-fingerprint"></i> Biometric ZKTeco ID</label>
-                <input type="text" name="biometric_user_id" value="<?php echo htmlspecialchars($employee['biometric_user_id'] ?? ''); ?>" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--accent-warning); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--accent-warning); font-size: 0.9rem;"><i class="fas fa-fingerprint"></i> Employee ID / Biometric ID *</label>
+                <div style="display: flex; width: 100%;">
+                    <span style="display: inline-flex; align-items: center; padding: 0 0.85rem; border: 1px solid var(--accent-warning); border-right: 0; border-radius: var(--radius-md) 0 0 var(--radius-md); background: var(--bg-hover); color: var(--accent-warning); font-weight: 700;">EMP-</span>
+                    <input type="text" id="employee_code" name="employee_code" required value="<?php echo htmlspecialchars($employeeIdNumber); ?>" inputmode="numeric" pattern="[0-9]+" style="width: 100%; padding: 0.75rem; border-radius: 0 var(--radius-md) var(--radius-md) 0; border: 1px solid var(--accent-warning); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+                </div>
             </div>
             <div>
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Branch Location</label>
@@ -149,10 +153,14 @@ include '../../includes/header.php';
             <div>
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Status</label>
                 <select name="status" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
-                    <?php foreach (['Active', 'On Leave', 'Terminated'] as $status): ?>
+                    <?php foreach (['Active', 'On Leave', 'Resigned', 'Terminated'] as $status): ?>
                         <option value="<?php echo $status; ?>" <?php echo selected_value($employee['status'], $status); ?>><?php echo $status; ?></option>
                     <?php endforeach; ?>
                 </select>
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Resigned / Termination Date</label>
+                <input type="date" name="resignation_termination_date" value="<?php echo htmlspecialchars($employee['resignation_termination_date'] ?? ''); ?>" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none; color-scheme: light;">
             </div>
             <div>
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Base Salary (Monthly <?php echo htmlspecialchars($currency); ?>)</label>

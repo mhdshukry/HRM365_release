@@ -14,12 +14,6 @@ $shifts = $pdo->query("SELECT id, name FROM shifts WHERE status = 'Active' ORDER
 $policies = $pdo->query("SELECT id, name FROM attendance_policies WHERE status = 'Active' ORDER BY name ASC")->fetchAll();
 $currency = $pdo->query("SELECT setting_value FROM system_settings WHERE setting_key = 'currency'")->fetchColumn() ?: 'LKR';
 
-// Auto-generate next Employee Code
-$empCodeStmt = $pdo->query("SELECT id FROM employees ORDER BY id DESC LIMIT 1");
-$lastEmp = $empCodeStmt->fetch();
-$nextId = $lastEmp ? $lastEmp['id'] + 1 : 1;
-$autoEmpCode = 'EMP-' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
-
 include '../../includes/header.php'; 
 ?>
 
@@ -56,6 +50,10 @@ include '../../includes/header.php';
                 <input type="text" name="phone" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
             </div>
             <div>
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">NIC Number</label>
+                <input type="text" name="nic_number" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+            </div>
+            <div>
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Date of Birth</label>
                 <input type="date" name="date_of_birth" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none; color-scheme: light;">
             </div>
@@ -78,14 +76,11 @@ include '../../includes/header.php';
         <h3 class="mb-4" style="color: var(--accent-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;"><i class="fas fa-briefcase"></i> Employment Details</h3>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
             <div>
-                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Employee Code (Internal ID) *</label>
-                <input type="text" name="employee_code" value="<?php echo htmlspecialchars($autoEmpCode); ?>" required style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
-            </div>
-            <div>
-                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-warning); font-size: 0.9rem;">
-                    <i class="fas fa-fingerprint"></i> Biometric ZKTeco ID
-                </label>
-                <input type="text" name="biometric_user_id" placeholder="ID from hardware scanner" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--accent-warning); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--accent-warning); font-size: 0.9rem;"><i class="fas fa-fingerprint"></i> Employee ID / Biometric ID *</label>
+                <div style="display: flex; width: 100%;">
+                    <span style="display: inline-flex; align-items: center; padding: 0 0.85rem; border: 1px solid var(--accent-warning); border-right: 0; border-radius: var(--radius-md) 0 0 var(--radius-md); background: var(--bg-hover); color: var(--accent-warning); font-weight: 700;">EMP-</span>
+                    <input type="text" id="employee_code" name="employee_code" required inputmode="numeric" pattern="[0-9]+" placeholder="Enter numeric ID from ZKTeco machine" style="width: 100%; padding: 0.75rem; border-radius: 0 var(--radius-md) var(--radius-md) 0; border: 1px solid var(--accent-warning); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+                </div>
             </div>
             <div>
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Branch Location</label>
@@ -121,6 +116,18 @@ include '../../includes/header.php';
                     <option value="Part-time">Part-time</option>
                     <option value="Contract">Contract</option>
                 </select>
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Status</label>
+                <select name="status" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+                    <?php foreach (['Active', 'On Leave', 'Resigned', 'Terminated'] as $status): ?>
+                        <option value="<?php echo $status; ?>"><?php echo $status; ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Resigned / Termination Date</label>
+                <input type="date" name="resignation_termination_date" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none; color-scheme: light;">
             </div>
             <div>
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Base Salary (Monthly <?php echo htmlspecialchars($currency); ?>)</label>

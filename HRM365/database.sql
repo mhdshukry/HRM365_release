@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS branches (
     address TEXT,
     phone VARCHAR(20),
     email VARCHAR(100),
+    biometric_terminal_sn VARCHAR(100),
     status ENUM('Active', 'Inactive') DEFAULT 'Active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -29,7 +30,46 @@ CREATE TABLE IF NOT EXISTS shifts (
 );
 
 INSERT INTO shifts (name, description, start_time, end_time, grace_period) VALUES 
-('Standard Day Shift', 'Regular 9-to-5 working hours.', '09:00:00', '17:00:00', 15);
+('Standard Day Shift', 'Regular 9-to-5 working hours.', '09:00:00', '17:00:00', 15),
+('Standard Night Shift', 'Regular night working hours.', '17:00:00', '01:00:00', 15),
+('Saturday Shift - Half Day', 'Saturday half-day working hours.', '09:00:00', '13:00:00', 15);
+
+CREATE TABLE IF NOT EXISTS shift_weekly_schedules (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    shift_id INT NOT NULL,
+    weekday TINYINT NOT NULL,
+    is_working BOOLEAN DEFAULT TRUE,
+    start_time TIME NULL,
+    end_time TIME NULL,
+    is_night_shift BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY shift_weekday (shift_id, weekday),
+    FOREIGN KEY (shift_id) REFERENCES shifts(id) ON DELETE CASCADE
+);
+
+INSERT IGNORE INTO shift_weekly_schedules (shift_id, weekday, is_working, start_time, end_time, is_night_shift)
+SELECT s.id,
+       d.weekday,
+       CASE
+           WHEN LOWER(s.name) LIKE '%saturday%' THEN IF(d.weekday = 6, 1, 0)
+           ELSE IF(d.weekday BETWEEN 1 AND 5, 1, 0)
+       END,
+       CASE
+           WHEN LOWER(s.name) LIKE '%saturday%' AND d.weekday <> 6 THEN NULL
+           WHEN LOWER(s.name) NOT LIKE '%saturday%' AND d.weekday NOT BETWEEN 1 AND 5 THEN NULL
+           ELSE s.start_time
+       END,
+       CASE
+           WHEN LOWER(s.name) LIKE '%saturday%' AND d.weekday <> 6 THEN NULL
+           WHEN LOWER(s.name) NOT LIKE '%saturday%' AND d.weekday NOT BETWEEN 1 AND 5 THEN NULL
+           ELSE s.end_time
+       END,
+       s.is_night_shift
+FROM shifts s
+JOIN (
+    SELECT 1 AS weekday UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7
+) d;
 
 -- Attendance Policies Table
 CREATE TABLE IF NOT EXISTS attendance_policies (
@@ -69,6 +109,7 @@ CREATE TABLE IF NOT EXISTS employees (
     last_name VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     phone VARCHAR(20),
+    nic_number VARCHAR(30),
     date_of_birth DATE,
     gender ENUM('Male', 'Female', 'Other'),
     address TEXT,
@@ -78,7 +119,8 @@ CREATE TABLE IF NOT EXISTS employees (
     hire_date DATE NOT NULL,
     employment_type ENUM('Full-time', 'Part-time', 'Contract', 'Intern') DEFAULT 'Full-time',
     base_salary DECIMAL(10, 2) DEFAULT 0.00,
-    status ENUM('Active', 'On Leave', 'Terminated') DEFAULT 'Active',
+    status ENUM('Active', 'On Leave', 'Resigned', 'Terminated') DEFAULT 'Active',
+    resignation_termination_date DATE NULL,
     biometric_user_id VARCHAR(50) UNIQUE NULL,
     profile_photo VARCHAR(255),
     shift_id INT NULL,
@@ -118,6 +160,18 @@ CREATE TABLE IF NOT EXISTS attendance_records (
     UNIQUE KEY emp_date (employee_id, date)
 );
 
+CREATE TABLE IF NOT EXISTS employee_shift_overrides (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT NOT NULL,
+    weekday TINYINT NOT NULL,
+    shift_id INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY employee_weekday (employee_id, weekday),
+    FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
+    FOREIGN KEY (shift_id) REFERENCES shifts(id) ON DELETE SET NULL
+);
+
 -- Employee Bank Details
 CREATE TABLE IF NOT EXISTS employee_bank_details (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -139,6 +193,7 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     full_name VARCHAR(100),
+    phone VARCHAR(30),
     role ENUM('admin', 'HR', 'manager', 'employee') DEFAULT 'employee',
     status ENUM('Active', 'Inactive') DEFAULT 'Active',
     language VARCHAR(20) DEFAULT 'English',
@@ -227,8 +282,8 @@ CREATE TABLE IF NOT EXISTS leave_types (
 
 INSERT IGNORE INTO leave_types (id, name, description, max_days_per_year, is_paid, color) VALUES 
 (1, 'Annual Leave', 'Standard paid time off for vacations.', 14, TRUE, '#3b82f6'),
-(2, 'Sick Leave', 'Paid time off for medical reasons.', 7, TRUE, '#ef4444'),
-(3, 'Maternity Leave', 'Statutory maternity leave.', 90, TRUE, '#ec4899'),
+(2, 'Medical Leave', 'Paid time off for medical reasons.', 7, TRUE, '#ef4444'),
+(3, 'Maternity Leave', 'Statutory maternity leave.', 84, TRUE, '#ec4899'),
 (4, 'Unpaid Leave', 'Time off without pay.', 365, FALSE, '#6b7280'),
 (5, 'Short Leave', 'Short leave permission. One request consumes 0.25 day.', 6, TRUE, '#06b6d4'),
 (6, 'Casual Leave', 'Paid casual leave for personal or urgent needs. Supports full-day and half-day applications.', 7, TRUE, '#f59e0b');
@@ -263,12 +318,38 @@ CREATE TABLE IF NOT EXISTS payroll_records (
     overtime_amount DECIMAL(10, 2) DEFAULT 0.00,
     deductions DECIMAL(10, 2) DEFAULT 0.00,
     unpaid_days DECIMAL(8, 2) DEFAULT 0.00,
+    advance_amount DECIMAL(10, 2) DEFAULT 0.00,
+    epf_employee_amount DECIMAL(10, 2) DEFAULT 0.00,
+    epf_employer_amount DECIMAL(10, 2) DEFAULT 0.00,
+    etf_employer_amount DECIMAL(10, 2) DEFAULT 0.00,
     net_salary DECIMAL(10, 2) DEFAULT 0.00,
     status ENUM('Draft', 'Finalized', 'Paid') DEFAULT 'Draft',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
     UNIQUE KEY emp_month (employee_id, payroll_month)
+);
+
+-- Employee Advance Payments
+CREATE TABLE IF NOT EXISTS advance_payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    payment_date DATE NOT NULL,
+    deduction_month VARCHAR(10) NOT NULL,
+    reason TEXT,
+    status ENUM('Pending', 'Approved', 'Paid', 'Cancelled') DEFAULT 'Paid',
+    created_by INT NULL,
+    approved_by INT NULL,
+    paid_by INT NULL,
+    approved_at TIMESTAMP NULL,
+    paid_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (paid_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- Leave Policies Table
@@ -291,7 +372,7 @@ CREATE TABLE IF NOT EXISTS leave_policies (
 INSERT INTO leave_policies (name, description, leave_type_id, accrual_type, accrual_rate, carry_forward_limit, min_days_per_application, max_days_per_application) VALUES
 ('Standard Annual Policy', 'Base annual leave rules. Supports full-day and half-day applications.', 1, 'Yearly', 14.00, 5, 0.50, 14.00),
 ('Standard Casual Policy', 'Base casual leave rules. Supports full-day and half-day applications.', 6, 'Yearly', 7.00, 0, 0.50, 7.00),
-('Standard Sick Policy', 'Base sick leave rules. Supports full-day and half-day applications.', 2, 'Yearly', 7.00, 0, 0.50, 7.00),
+('Standard Medical Policy', 'Base medical leave rules. Supports full-day and half-day applications.', 2, 'Yearly', 7.00, 0, 0.50, 7.00),
 ('Standard Short Leave Policy', 'Short leave allowance. Each short leave application consumes 0.25 day.', 5, 'Monthly', 0.50, 0, 0.25, 0.25);
 
 -- Leave Balances Ledger Table
@@ -354,7 +435,15 @@ INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES
 ('holiday_country', 'LK'),
 ('currency', 'LKR'),
 ('grace_period_mins', '15'),
-('late_deduction_amount', '50.00');
+('late_deduction_amount', '50.00'),
+('sms_enabled', '1'),
+('sms_provider', 'textlk'),
+('sms_api_url', 'https://app.text.lk/api/v3/sms/send'),
+('sms_api_key', ''),
+('sms_sender_name', 'Pos365.lk'),
+('epf_employee_rate', '8.00'),
+('epf_employer_rate', '12.00'),
+('etf_employer_rate', '3.00');
 
 -- Holidays Table
 CREATE TABLE IF NOT EXISTS holidays (

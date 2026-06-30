@@ -114,7 +114,12 @@ if ($type_filter === 'all' || $type_filter === 'leave') {
 // 3. Fetch Meetings (Blue)
 if ($type_filter === 'all' || $type_filter === 'meeting') {
     $meet_sql = "
-        SELECT m.*, e.id as emp_id, e.first_name, e.last_name, e.department 
+        SELECT m.*, e.id as emp_id, e.first_name, e.last_name, e.department,
+               (
+                    SELECT GROUP_CONCAT(CONCAT(a.first_name, ' ', a.last_name) ORDER BY a.first_name ASC SEPARATOR ', ')
+                    FROM employees a
+                    WHERE FIND_IN_SET(a.id, COALESCE(m.attendees, ''))
+               ) AS attendee_names
         FROM meetings m
         JOIN employees e ON m.organizer_id = e.id
         WHERE m.status != 'Cancelled'
@@ -122,12 +127,16 @@ if ($type_filter === 'all' || $type_filter === 'meeting') {
     
     $params = [];
     if ($dept_filter !== 'all' && $dept_filter !== '') {
-        $meet_sql .= " AND e.department = ?";
+        $meet_sql .= " AND (e.department = ? OR EXISTS (
+            SELECT 1 FROM employees ae
+            WHERE ae.department = ? AND FIND_IN_SET(ae.id, COALESCE(m.attendees, ''))
+        ))";
+        $params[] = $dept_filter;
         $params[] = $dept_filter;
     }
     if ($emp_filter > 0) {
-        // Technically meetings should filter if employee is attendee or organizer. For simplicity, filtering by organizer.
-        $meet_sql .= " AND e.id = ?";
+        $meet_sql .= " AND (e.id = ? OR FIND_IN_SET(?, COALESCE(m.attendees, '')))";
+        $params[] = $emp_filter;
         $params[] = $emp_filter;
     }
 
@@ -150,6 +159,7 @@ if ($type_filter === 'all' || $type_filter === 'meeting') {
                 'description' => $m['description'],
                 'location' => $m['location'],
                 'organizer' => $m['first_name'] . ' ' . $m['last_name'],
+                'attendees' => $m['attendee_names'] ?: 'No attendees selected',
                 'status' => $m['status'],
                 'icon' => 'fa-video'
             ]

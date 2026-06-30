@@ -6,6 +6,16 @@ if (!in_array($currentUser['role'], ['admin', 'HR'])) {
     die("Unauthorized access.");
 }
 
+$weekDays = [
+    1 => 'Monday',
+    2 => 'Tuesday',
+    3 => 'Wednesday',
+    4 => 'Thursday',
+    5 => 'Friday',
+    6 => 'Saturday',
+    7 => 'Sunday',
+];
+
 include '../../includes/header.php'; 
 ?>
 
@@ -35,17 +45,20 @@ include '../../includes/header.php';
             </div>
         </div>
 
-        <!-- SECTION 2: Time Boundaries -->
-        <h3 class="mb-4" style="color: var(--accent-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Working Boundaries</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
-            <div>
-                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Start Time *</label>
-                <input type="time" name="start_time" required style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none; color-scheme: light;">
-            </div>
-            <div>
-                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">End Time *</label>
-                <input type="time" name="end_time" required style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none; color-scheme: light;">
-            </div>
+        <!-- SECTION 2: Weekly Boundaries -->
+        <h3 class="mb-4" style="color: var(--accent-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Weekly Working Boundaries</h3>
+        <div style="display: grid; gap: 0.75rem; margin-bottom: 2rem;">
+            <?php foreach ($weekDays as $dayNumber => $dayName): ?>
+                <?php $isWeekday = $dayNumber <= 5; ?>
+                <div style="display: grid; grid-template-columns: 150px 1fr 1fr; gap: 1rem; align-items: center; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-secondary);">
+                    <label style="display: flex; align-items: center; gap: 0.6rem; color: var(--text-primary); font-weight: 500;">
+                        <input type="checkbox" name="working_days[<?php echo $dayNumber; ?>]" value="1" <?php echo $isWeekday ? 'checked' : ''; ?> style="width: 1.1rem; height: 1.1rem; accent-color: var(--accent-primary);">
+                        <?php echo $dayName; ?>
+                    </label>
+                    <input type="time" name="day_start_time[<?php echo $dayNumber; ?>]" value="<?php echo $isWeekday ? '08:00' : ''; ?>" style="width: 100%; padding: 0.65rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); outline: none; color-scheme: light;">
+                    <input type="time" name="day_end_time[<?php echo $dayNumber; ?>]" value="<?php echo $isWeekday ? '17:00' : ''; ?>" style="width: 100%; padding: 0.65rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); outline: none; color-scheme: light;">
+                </div>
+            <?php endforeach; ?>
         </div>
 
         <!-- SECTION 3: Tolerances & Compliance -->

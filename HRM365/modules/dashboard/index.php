@@ -117,7 +117,14 @@ $emp = $empStmt->fetch();
 $blockStatus = null;
 if ($emp) {
     $branchId = $emp['branch_id'] !== null ? intval($emp['branch_id']) : null;
-    $blockStatus = get_attendance_block_status($pdo, intval($emp['id']), $today, $branchId);
+    $dayContext = get_attendance_day_context(
+        $pdo,
+        intval($emp['id']),
+        $today,
+        $branchId,
+        $emp['shift_id'] !== null ? intval($emp['shift_id']) : null
+    );
+    $blockStatus = $dayContext['block_status'];
 }
 
 $recentActivity = [];
@@ -156,10 +163,15 @@ if ($isHR) {
 $eventParams = [];
 $eventScope = '';
 if ($currentUser['role'] === 'employee') {
-    $eventScope = ' AND m.organizer_id = ?';
+    $eventScope = " AND (m.organizer_id = ? OR FIND_IN_SET(?, COALESCE(m.attendees, '')))";
+    $eventParams[] = $employeeId ?? 0;
     $eventParams[] = $employeeId ?? 0;
 } elseif ($currentUser['role'] === 'manager') {
-    $eventScope = ' AND e.department = ?';
+    $eventScope = " AND (e.department = ? OR EXISTS (
+        SELECT 1 FROM employees ae
+        WHERE ae.department = ? AND FIND_IN_SET(ae.id, COALESCE(m.attendees, ''))
+    ))";
+    $eventParams[] = $currentUser['department'] ?? '';
     $eventParams[] = $currentUser['department'] ?? '';
 }
 $eventStmt = $pdo->prepare("
@@ -370,11 +382,11 @@ include '../../includes/header.php';
 
         <div class="dashboard-attendance-panel">
             <div class="dashboard-attendance-row">
-                <span>Clock In</span>
+                <span>Sign-In</span>
                 <strong><?php echo !empty($record['clock_in']) ? date('h:i A', strtotime($record['clock_in'])) : '--:--'; ?></strong>
             </div>
             <div class="dashboard-attendance-row">
-                <span>Clock Out</span>
+                <span>Sign-Out</span>
                 <strong><?php echo !empty($record['clock_out']) ? date('h:i A', strtotime($record['clock_out'])) : '--:--'; ?></strong>
             </div>
             <div class="dashboard-attendance-row">

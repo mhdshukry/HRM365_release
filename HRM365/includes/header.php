@@ -1,24 +1,16 @@
 <?php
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/avatar.php';
+require_once __DIR__ . '/notification_helper.php';
 
 $notificationCount = 0;
+$notificationPreview = [];
 try {
-    if (in_array($currentUser['role'], ['admin', 'HR'])) {
-        $notificationCount += intval($pdo->query("SELECT COUNT(*) FROM leave_applications WHERE status = 'Pending'")->fetchColumn());
-        $notificationCount += intval($pdo->query("SELECT COUNT(*) FROM attendance_regularizations WHERE status = 'Pending'")->fetchColumn());
-        $notificationCount += intval($pdo->query("SELECT COUNT(*) FROM biometric_punches WHERE is_synced = 0")->fetchColumn());
-    } elseif (!empty($currentUser['employee_id'])) {
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM leave_applications WHERE employee_id = ? AND status = 'Pending'");
-        $stmt->execute([$currentUser['employee_id']]);
-        $notificationCount += intval($stmt->fetchColumn());
-
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM attendance_regularizations WHERE employee_id = ? AND status = 'Pending'");
-        $stmt->execute([$currentUser['employee_id']]);
-        $notificationCount += intval($stmt->fetchColumn());
-    }
+    $notificationPreview = notification_items($pdo, $currentUser, 5);
+    $notificationCount = count(notification_items($pdo, $currentUser, 50));
 } catch (\PDOException $e) {
     $notificationCount = 0;
+    $notificationPreview = [];
 }
 
 $stylesheetPath = __DIR__ . '/../css/styles.css';
@@ -37,7 +29,7 @@ $stylesheetVersion = is_file($stylesheetPath) ? filemtime($stylesheetPath) : tim
 <body>
     <?php include 'sidebar.php'; ?>
     
-    <div class="main-wrapper">
+    <div class="main-wrapper" style="display: flex; flex-direction: column; flex: 1; min-height: 100vh; width: 100%;">
         <header class="top-header">
             <button type="button" class="mobile-menu-toggle" aria-label="Open navigation" aria-controls="sidebarNav" aria-expanded="false">
                 <i class="fas fa-bars"></i>
@@ -50,12 +42,37 @@ $stylesheetVersion = is_file($stylesheetPath) ? filemtime($stylesheetPath) : tim
             </div>
             
             <div class="header-actions">
-                <a href="<?php echo app_url('modules/notifications/index.php'); ?>" class="action-btn" title="Notifications">
-                    <i class="far fa-bell"></i>
-                    <?php if ($notificationCount > 0): ?>
-                        <span class="badge"><?php echo $notificationCount; ?></span>
-                    <?php endif; ?>
-                </a>
+                <div class="notification-menu">
+                    <button type="button" class="action-btn notification-toggle" title="Notifications" aria-expanded="false" aria-controls="notificationDropdown">
+                        <i class="far fa-bell"></i>
+                        <?php if ($notificationCount > 0): ?>
+                            <span class="badge"><?php echo $notificationCount; ?></span>
+                        <?php endif; ?>
+                    </button>
+                    <div class="notification-dropdown" id="notificationDropdown">
+                        <div class="notification-dropdown-head">
+                            <strong>Notifications</strong>
+                            <span><?php echo intval($notificationCount); ?> pending</span>
+                        </div>
+                        <?php if (!empty($notificationPreview)): ?>
+                            <div class="notification-dropdown-list">
+                                <?php foreach ($notificationPreview as $item): ?>
+                                    <a href="<?php echo htmlspecialchars($item['url']); ?>" class="notification-dropdown-item">
+                                        <span class="notification-dropdown-icon"><i class="fas <?php echo htmlspecialchars($item['icon']); ?>"></i></span>
+                                        <span>
+                                            <span class="notification-dropdown-type"><?php echo htmlspecialchars($item['type']); ?></span>
+                                            <strong><?php echo htmlspecialchars($item['title']); ?></strong>
+                                            <em><?php echo htmlspecialchars($item['meta']); ?></em>
+                                        </span>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="notification-dropdown-empty">No pending notifications.</div>
+                        <?php endif; ?>
+                        <a href="<?php echo app_url('modules/notifications/index.php'); ?>" class="notification-dropdown-footer">View all notifications</a>
+                    </div>
+                </div>
                 <div class="user-profile" style="display: flex; align-items: center; gap: 1rem;">
                     <a href="<?php echo app_url('profile.php'); ?>" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: inherit;">
                         <?php echo render_avatar($currentUser['first_name'] ?? null, $currentUser['last_name'] ?? null, $currentUser['profile_photo'] ?? null, $currentUser['username']); ?>
@@ -142,6 +159,34 @@ $stylesheetVersion = is_file($stylesheetPath) ? filemtime($stylesheetPath) : tim
                     document.addEventListener('click', function(e) {
                         if (!e.target.closest('.header-search')) {
                             hideResults();
+                        }
+                    });
+                });
+            </script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const menu = document.querySelector('.notification-menu');
+                    const toggle = document.querySelector('.notification-toggle');
+                    if (!menu || !toggle) return;
+
+                    toggle.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        const open = menu.classList.toggle('open');
+                        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    });
+
+                    document.addEventListener('click', function(event) {
+                        if (!event.target.closest('.notification-menu')) {
+                            menu.classList.remove('open');
+                            toggle.setAttribute('aria-expanded', 'false');
+                        }
+                    });
+
+                    document.addEventListener('keydown', function(event) {
+                        if (event.key === 'Escape') {
+                            menu.classList.remove('open');
+                            toggle.setAttribute('aria-expanded', 'false');
                         }
                     });
                 });

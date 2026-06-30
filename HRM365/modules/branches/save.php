@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $address = trim($_POST['address'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
     $email = trim($_POST['email'] ?? '');
+    $biometric_terminal_sn = trim($_POST['biometric_terminal_sn'] ?? '');
     $status = $_POST['status'] ?? 'Active';
 
     if ($name === '') {
@@ -37,20 +38,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $stmt = $pdo->prepare("
                 UPDATE branches
-                SET name = ?, address = ?, phone = ?, email = ?, status = ?
+                SET name = ?, address = ?, phone = ?, email = ?, biometric_terminal_sn = ?, status = ?
                 WHERE id = ?
             ");
-            $stmt->execute([$name, $address, $phone, $email, $status, $id]);
+            $stmt->execute([$name, $address, $phone, $email, $biometric_terminal_sn, $status, $id]);
 
             log_action($pdo, $currentUser['id'], 'BRANCH_UPDATED', "Updated branch: {$name}");
 
             header("Location: index.php?success=branch_updated");
         } else {
             $stmt = $pdo->prepare("
-                INSERT INTO branches (name, address, phone, email, status)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO branches (name, address, phone, email, biometric_terminal_sn, status)
+                VALUES (?, ?, ?, ?, ?, ?)
             ");
-            $stmt->execute([$name, $address, $phone, $email, $status]);
+            $stmt->execute([$name, $address, $phone, $email, $biometric_terminal_sn, $status]);
 
             log_action($pdo, $currentUser['id'], 'BRANCH_CREATED', "Created new branch: {$name}");
 

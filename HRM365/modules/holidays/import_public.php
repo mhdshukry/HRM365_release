@@ -12,6 +12,15 @@ if (!in_array($currentUser['role'], ['admin', 'HR'], true)) {
     die("Unauthorized access.");
 }
 
+function holiday_import_redirect(string $status, string $message, int $year): void
+{
+    header('Location: index.php?' . http_build_query([
+        $status => $message,
+        'year' => $year,
+    ]));
+    exit();
+}
+
 $year = intval($_POST['year'] ?? date('Y'));
 if ($year < 2000 || $year > 2100) {
     $year = intval(date('Y'));
@@ -98,7 +107,11 @@ if (empty($holidays)) {
 }
 
 if (empty($holidays)) {
-    die("Could not fetch public holidays. Please check internet access and the holiday country setting.");
+    holiday_import_redirect(
+        'error',
+        "Could not fetch public holidays for {$country} {$year}. Check server internet/DNS, PHP cURL/OpenSSL, and Settings > Public Holiday Country.",
+        $year
+    );
 }
 
 $existsStmt = $pdo->prepare("
@@ -146,5 +159,9 @@ foreach ($holidays as $holiday) {
 
 log_action($pdo, $currentUser['id'], 'PUBLIC_HOLIDAYS_IMPORTED', "Imported {$inserted} public holidays for {$country} {$year}; skipped {$skipped}");
 
-header('Location: index.php?success=public_holidays_imported&year=' . urlencode((string)$year));
+holiday_import_redirect(
+    'success',
+    "Imported {$inserted} public holiday(s) for {$country} {$year}; skipped {$skipped} duplicate/invalid row(s).",
+    $year
+);
 exit();

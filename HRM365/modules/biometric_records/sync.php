@@ -24,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                    p.late_arrival_grace, p.early_departure_grace, p.overtime_rate_per_hour
             FROM biometric_punches b
             LEFT JOIN employees e ON b.biometric_user_id = e.biometric_user_id
+                OR CONCAT('EMP-', b.biometric_user_id) = e.biometric_user_id
             LEFT JOIN shifts s ON e.shift_id = s.id
             LEFT JOIN attendance_policies p ON e.attendance_policy_id = p.id
             WHERE DATE(b.punch_time) = ?
@@ -75,7 +76,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $clock_out_time = null;
             $clock_out_index = null;
             $branchId = $emp['branch_id'] !== null ? intval($emp['branch_id']) : null;
-            $blockStatus = $emp['employee_id'] ? get_attendance_block_status($pdo, intval($emp['employee_id']), $date, $branchId) : null;
+            $dayContext = null;
+            if ($emp['employee_id']) {
+                $dayContext = get_attendance_day_context(
+                    $pdo,
+                    intval($emp['employee_id']),
+                    $date,
+                    $branchId,
+                    $emp['shift_id'] !== null ? intval($emp['shift_id']) : null
+                );
+                if ($dayContext['shift']) {
+                    $emp['shift_id'] = intval($dayContext['shift']['id']);
+                    $emp['start_time'] = $dayContext['shift']['start_time'];
+                    $emp['end_time'] = $dayContext['shift']['end_time'];
+                } else {
+                    $emp['shift_id'] = null;
+                    $emp['start_time'] = null;
+                    $emp['end_time'] = null;
+                }
+            }
+            $blockStatus = $dayContext['block_status'] ?? null;
 
             foreach ($rows as $index => $row) {
                 if ($index === 0) {
@@ -99,9 +119,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($blockStatus !== null) {
                     $statuses[$row['id']] = $blockStatus;
                 } elseif ($index === 0) {
-                    $statuses[$row['id']] = 'Clock In';
+                    $statuses[$row['id']] = 'Sign-In';
                 } elseif ($clock_out_index !== null && $index === $clock_out_index) {
-                    $statuses[$row['id']] = 'Clock Out';
+                    $statuses[$row['id']] = 'Sign-Out';
                 } else {
                     $statuses[$row['id']] = 'Redundant';
                 }
@@ -151,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if ($emp['employee_id'] && $blockStatus === null) {
-                $calendarFlags = get_attendance_calendar_flags($pdo, $date, $branchId);
+                $calendarFlags = $dayContext['calendar'] ?? get_attendance_calendar_flags($pdo, $date, $branchId);
                 $upsert = $pdo->prepare("
                     INSERT INTO attendance_records 
                     (employee_id, shift_id, attendance_policy_id, date, clock_in, clock_out, total_hours, is_late, is_early_departure, overtime_hours, overtime_amount, is_holiday, is_weekend, status) 

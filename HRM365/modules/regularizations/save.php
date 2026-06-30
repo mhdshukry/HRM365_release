@@ -54,6 +54,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
 
+        $empStmt = $pdo->prepare("SELECT shift_id, attendance_policy_id, branch_id FROM employees WHERE id = ?");
+        $empStmt->execute([$employee_id]);
+        $employee = $empStmt->fetch();
+        if (!$employee) {
+            $pdo->rollBack();
+            die("Employee not found.");
+        }
+
+        $branchId = $employee['branch_id'] !== null ? intval($employee['branch_id']) : null;
+        $dayContext = get_attendance_day_context(
+            $pdo,
+            $employee_id,
+            $date,
+            $branchId,
+            $employee['shift_id'] !== null ? intval($employee['shift_id']) : null
+        );
+        if ($dayContext['block_status'] !== null) {
+            $pdo->rollBack();
+            die("Regularization cannot be requested for {$date}: {$dayContext['block_status']}.");
+        }
+
         // 1. Fetch the target attendance record for this date
         $recStmt = $pdo->prepare("SELECT id, clock_in, clock_out FROM attendance_records WHERE employee_id = ? AND date = ?");
         $recStmt->execute([$employee_id, $date]);
@@ -68,18 +89,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $original_clock_in = $record['clock_in'];
             $original_clock_out = $record['clock_out'];
         } else {
-            $empStmt = $pdo->prepare("SELECT shift_id, attendance_policy_id, branch_id FROM employees WHERE id = ?");
-            $empStmt->execute([$employee_id]);
-            $employee = $empStmt->fetch();
-            if (!$employee) {
-                die("Employee not found.");
-            }
+            $calendarFlags = $dayContext['calendar'];
+            $shiftId = $dayContext['shift'] ? intval($dayContext['shift']['id']) : null;
 
-            $calendarFlags = get_attendance_calendar_flags($pdo, $date, $employee['branch_id'] !== null ? intval($employee['branch_id']) : null);
-
-            // If they never clocked in at all, create a blank record first.
+            // If they never signed in at all, create a blank record first.
             $insRec = $pdo->prepare("INSERT INTO attendance_records (employee_id, shift_id, attendance_policy_id, date, is_holiday, is_weekend) VALUES (?, ?, ?, ?, ?, ?)");
-            $insRec->execute([$employee_id, $employee['shift_id'], $employee['attendance_policy_id'], $date, $calendarFlags['is_holiday'], $calendarFlags['is_weekend']]);
+            $insRec->execute([$employee_id, $shiftId, $employee['attendance_policy_id'], $date, $calendarFlags['is_holiday'], $calendarFlags['is_weekend']]);
             $attendance_record_id = $pdo->lastInsertId();
         }
 

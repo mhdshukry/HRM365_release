@@ -27,7 +27,7 @@ if ($employee_id <= 0 || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || strtotim
 }
 
 $empStmt = $pdo->prepare("
-    SELECT e.id, e.first_name, e.last_name, e.employee_code, e.branch_id,
+    SELECT e.id, e.first_name, e.last_name, e.employee_code, e.branch_id, e.shift_id,
            s.name AS shift_name, s.start_time, s.end_time,
            p.name AS policy_name, p.late_arrival_grace, p.early_departure_grace
     FROM employees e
@@ -64,16 +64,24 @@ $leaveStmt = $pdo->prepare("
 $leaveStmt->execute([$employee_id, $date]);
 $leaves = $leaveStmt->fetchAll();
 
-$calendarFlags = get_attendance_calendar_flags($pdo, $date, $employee['branch_id'] !== null ? intval($employee['branch_id']) : null);
+$dayContext = get_attendance_day_context(
+    $pdo,
+    $employee_id,
+    $date,
+    $employee['branch_id'] !== null ? intval($employee['branch_id']) : null,
+    $employee['shift_id'] !== null ? intval($employee['shift_id']) : null
+);
+$calendarFlags = $dayContext['calendar'];
+$resolvedShift = $dayContext['shift'];
 
 echo json_encode([
     'employee' => [
         'name' => trim($employee['first_name'] . ' ' . $employee['last_name']),
         'code' => $employee['employee_code'],
-        'shift' => $employee['shift_name'] ?: 'No Shift',
+        'shift' => $resolvedShift['name'] ?? ($employee['shift_name'] ?: 'No Shift'),
         'policy' => $employee['policy_name'] ?: 'No Policy',
-        'start_time' => $employee['start_time'],
-        'end_time' => $employee['end_time'],
+        'start_time' => $resolvedShift['start_time'] ?? $employee['start_time'],
+        'end_time' => $resolvedShift['end_time'] ?? $employee['end_time'],
         'late_grace' => intval($employee['late_arrival_grace'] ?? 0),
         'early_grace' => intval($employee['early_departure_grace'] ?? 0),
     ],
@@ -82,5 +90,12 @@ echo json_encode([
     'calendar' => [
         'is_holiday' => intval($calendarFlags['is_holiday']),
         'is_weekend' => intval($calendarFlags['is_weekend']),
+    ],
+    'day_context' => [
+        'work_status' => $dayContext['work_status'],
+        'block_status' => $dayContext['block_status'],
+        'can_punch' => $dayContext['can_punch'],
+        'leave_days' => $dayContext['leave']['days'],
+        'leave_types' => $dayContext['leave']['types'],
     ],
 ]);

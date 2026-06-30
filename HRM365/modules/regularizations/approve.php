@@ -56,6 +56,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 die("Employee not found.");
             }
 
+            $branchId = $emp['branch_id'] !== null ? intval($emp['branch_id']) : null;
+            $dayContext = get_attendance_day_context(
+                $pdo,
+                intval($emp_id),
+                $date,
+                $branchId,
+                $emp['shift_id'] !== null ? intval($emp['shift_id']) : null
+            );
+            $resolvedShift = $dayContext['shift'];
+            $emp['shift_id'] = $resolvedShift ? intval($resolvedShift['id']) : null;
+            $emp['start_time'] = $resolvedShift['start_time'] ?? null;
+            $emp['end_time'] = $resolvedShift['end_time'] ?? null;
+
+            $blockStatus = $dayContext['block_status'];
+            if ($blockStatus !== null) {
+                $pdo->rollBack();
+                die("Regularization cannot be approved for {$date}: {$blockStatus}.");
+            }
+
             $is_late = 0;
             $is_early_departure = 0;
             $overtime_hours = 0.00;
@@ -114,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // Update the Core Timesheet Record
-            $calendarFlags = get_attendance_calendar_flags($pdo, $date, $emp['branch_id'] !== null ? intval($emp['branch_id']) : null);
+            $calendarFlags = $dayContext['calendar'];
             $updateRec = $pdo->prepare("
                 UPDATE attendance_records 
                 SET shift_id = ?, attendance_policy_id = ?, clock_in = ?, clock_out = ?, total_hours = ?, 

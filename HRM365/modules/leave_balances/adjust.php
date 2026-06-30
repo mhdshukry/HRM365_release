@@ -44,7 +44,7 @@ include '../../includes/header.php';
         <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">
             <strong>Employee:</strong> <?php echo htmlspecialchars($balance['first_name'] . ' ' . $balance['last_name'] . ' (' . $balance['employee_code'] . ')'); ?><br>
             <strong>Leave Target:</strong> <?php echo htmlspecialchars($balance['leave_type_name']); ?><br>
-            <strong>Fiscal Year:</strong> <?php echo $balance['year']; ?>
+            <strong>Year:</strong> <?php echo $balance['year']; ?>
         </p>
     </div>
 

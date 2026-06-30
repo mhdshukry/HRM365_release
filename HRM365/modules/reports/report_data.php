@@ -1,6 +1,7 @@
 <?php
 
 require_once '../../includes/attendance_math.php';
+require_once '../../includes/payroll_math.php';
 
 $today = date('Y-m-d');
 $defaultStart = date('Y-m-01');
@@ -11,8 +12,11 @@ if (strtotime($end_date) < strtotime($start_date)) {
 }
 
 $employee_filter = intval($_GET['employee_id'] ?? 0);
+$branch_filter = intval($_GET['branch_id'] ?? 0);
 $employeeWhere = '';
 $employeeParams = [];
+$branchOptions = [];
+$branchWhere = '';
 
 if ($currentUser['role'] === 'employee') {
     $employee_filter = intval($currentUser['employee_id'] ?? 0);
@@ -21,10 +25,17 @@ if ($currentUser['role'] === 'employee') {
 } elseif ($currentUser['role'] === 'manager') {
     $employeeWhere = 'WHERE e.department = ?';
     $employeeParams[] = $currentUser['department'] ?? '';
+} elseif (in_array($currentUser['role'], ['admin', 'HR'], true)) {
+    $branchOptions = $pdo->query("SELECT id, name FROM branches WHERE status = 'Active' ORDER BY name ASC")->fetchAll();
+    if ($branch_filter > 0) {
+        $employeeWhere = 'WHERE e.branch_id = ?';
+        $employeeParams[] = $branch_filter;
+        $branchWhere = ' AND e.branch_id = ?';
+    }
 }
 
 $employeeSql = "
-    SELECT e.id, e.first_name, e.last_name, e.employee_code
+    SELECT e.id, e.first_name, e.last_name, e.employee_code, e.branch_id
     FROM employees e
     {$employeeWhere}
     ORDER BY e.first_name ASC
@@ -49,6 +60,9 @@ if ($employee_filter > 0) {
 } elseif ($currentUser['role'] === 'employee') {
     $scopeSql = ' AND e.id = ?';
     $scopeParams[] = intval($currentUser['employee_id'] ?? 0);
+} elseif (in_array($currentUser['role'], ['admin', 'HR'], true) && $branch_filter > 0) {
+    $scopeSql = ' AND e.branch_id = ?';
+    $scopeParams[] = $branch_filter;
 }
 
 $attendanceStmt = $pdo->prepare("
@@ -95,6 +109,10 @@ $summary = [
     'hours' => 0.00,
     'overtime' => 0.00,
     'unpaid_days' => 0.00,
+    'advance_amount' => 0.00,
+    'epf_employee' => 0.00,
+    'epf_employer' => 0.00,
+    'etf_employer' => 0.00,
     'net_salary' => 0.00,
 ];
 
@@ -112,14 +130,26 @@ foreach ($attendanceRows as $row) {
 
 foreach ($payrollRows as $row) {
     $summary['unpaid_days'] += floatval($row['unpaid_days'] ?? 0);
+    $summary['advance_amount'] += floatval($row['advance_amount'] ?? 0);
+    $summary['epf_employee'] += floatval($row['epf_employee_amount'] ?? 0);
+    $summary['epf_employer'] += floatval($row['epf_employer_amount'] ?? 0);
+    $summary['etf_employer'] += floatval($row['etf_employer_amount'] ?? 0);
     $summary['net_salary'] += floatval($row['net_salary']);
 }
 
 $currency = $pdo->query("SELECT setting_value FROM system_settings WHERE setting_key = 'currency'")->fetchColumn() ?: 'LKR';
+$payrollFeatures = payroll_feature_settings($pdo);
 $selectedEmployeeLabel = 'All employees';
 foreach ($employees as $employee) {
     if (intval($employee['id']) === $employee_filter) {
         $selectedEmployeeLabel = $employee['first_name'] . ' ' . $employee['last_name'] . ' (' . $employee['employee_code'] . ')';
+        break;
+    }
+}
+$selectedBranchLabel = 'All branches';
+foreach ($branchOptions as $branch) {
+    if (intval($branch['id']) === $branch_filter) {
+        $selectedBranchLabel = $branch['name'];
         break;
     }
 }

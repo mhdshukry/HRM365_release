@@ -25,6 +25,23 @@ function checked_value($value): string
     return $value ? 'checked' : '';
 }
 
+$weekDays = [
+    1 => 'Monday',
+    2 => 'Tuesday',
+    3 => 'Wednesday',
+    4 => 'Thursday',
+    5 => 'Friday',
+    6 => 'Saturday',
+    7 => 'Sunday',
+];
+
+$scheduleStmt = $pdo->prepare("SELECT * FROM shift_weekly_schedules WHERE shift_id = ? ORDER BY weekday ASC");
+$scheduleStmt->execute([$id]);
+$weeklySchedules = [];
+foreach ($scheduleStmt->fetchAll() as $row) {
+    $weeklySchedules[intval($row['weekday'])] = $row;
+}
+
 include '../../includes/header.php';
 ?>
 
@@ -37,6 +54,23 @@ include '../../includes/header.php';
         <i class="fas fa-arrow-left"></i> Cancel
     </a>
 </div>
+
+<?php if (!empty($_GET['error'])): ?>
+    <div class="card" style="max-width: 800px; margin: 0 auto 1rem; border-left: 4px solid var(--accent-danger);">
+        <strong style="color: var(--accent-danger);">Shift not deleted.</strong>
+        <div style="color: var(--text-secondary); margin-top: 0.35rem;">
+            <?php
+            $errorMessages = [
+                'shift_has_employees' => 'This shift is still assigned to employees. Move those employees to another shift first.',
+                'shift_has_overrides' => 'This shift is still used in employee shift overrides. Remove those overrides first.',
+                'shift_not_found' => 'Shift not found.',
+                'delete_failed' => 'Could not delete the shift. Please try again.',
+            ];
+            echo htmlspecialchars($errorMessages[$_GET['error']] ?? 'Could not delete the shift.');
+            ?>
+        </div>
+    </div>
+<?php endif; ?>
 
 <div class="card" style="max-width: 800px; margin: 0 auto;">
     <form action="save.php" method="POST">
@@ -54,16 +88,24 @@ include '../../includes/header.php';
             </div>
         </div>
 
-        <h3 class="mb-4" style="color: var(--accent-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Working Boundaries</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
-            <div>
-                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Start Time *</label>
-                <input type="time" name="start_time" required value="<?php echo htmlspecialchars(substr($shift['start_time'], 0, 5)); ?>" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none; color-scheme: light;">
-            </div>
-            <div>
-                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">End Time *</label>
-                <input type="time" name="end_time" required value="<?php echo htmlspecialchars(substr($shift['end_time'], 0, 5)); ?>" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none; color-scheme: light;">
-            </div>
+        <h3 class="mb-4" style="color: var(--accent-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Weekly Working Boundaries</h3>
+        <div style="display: grid; gap: 0.75rem; margin-bottom: 2rem;">
+            <?php foreach ($weekDays as $dayNumber => $dayName): ?>
+                <?php
+                    $row = $weeklySchedules[$dayNumber] ?? null;
+                    $isWorking = $row ? intval($row['is_working']) === 1 : $dayNumber <= 5;
+                    $startValue = $row && !empty($row['start_time']) ? substr($row['start_time'], 0, 5) : ($isWorking ? substr($shift['start_time'], 0, 5) : '');
+                    $endValue = $row && !empty($row['end_time']) ? substr($row['end_time'], 0, 5) : ($isWorking ? substr($shift['end_time'], 0, 5) : '');
+                ?>
+                <div style="display: grid; grid-template-columns: 150px 1fr 1fr; gap: 1rem; align-items: center; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-secondary);">
+                    <label style="display: flex; align-items: center; gap: 0.6rem; color: var(--text-primary); font-weight: 500;">
+                        <input type="checkbox" name="working_days[<?php echo $dayNumber; ?>]" value="1" <?php echo $isWorking ? 'checked' : ''; ?> style="width: 1.1rem; height: 1.1rem; accent-color: var(--accent-primary);">
+                        <?php echo $dayName; ?>
+                    </label>
+                    <input type="time" name="day_start_time[<?php echo $dayNumber; ?>]" value="<?php echo htmlspecialchars($startValue); ?>" style="width: 100%; padding: 0.65rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); outline: none; color-scheme: light;">
+                    <input type="time" name="day_end_time[<?php echo $dayNumber; ?>]" value="<?php echo htmlspecialchars($endValue); ?>" style="width: 100%; padding: 0.65rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); outline: none; color-scheme: light;">
+                </div>
+            <?php endforeach; ?>
         </div>
 
         <h3 class="mb-4" style="color: var(--accent-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Tolerances & Compliance</h3>
@@ -92,6 +134,15 @@ include '../../includes/header.php';
             </button>
         </div>
     </form>
+
+    <div style="margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color);">
+        <form action="delete.php" method="POST" onsubmit="return confirm('Delete this shift permanently? This cannot be undone.');">
+            <input type="hidden" name="id" value="<?php echo intval($shift['id']); ?>">
+            <button type="submit" class="btn" style="width: 100%; background: rgba(239, 68, 68, 0.12); color: var(--accent-danger); border: 1px solid rgba(239, 68, 68, 0.28);">
+                <i class="fas fa-trash-alt"></i> Delete Shift
+            </button>
+        </form>
+    </div>
 </div>
 
 <?php include '../../includes/footer.php'; ?>

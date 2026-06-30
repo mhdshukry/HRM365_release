@@ -92,8 +92,8 @@ include '../../includes/header.php';
         <h3 class="mb-4" style="color: var(--accent-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Employee & Punches</h3>
         <div style="display: grid; gap: 0.75rem;">
             <div><strong>Employee:</strong> <?php echo htmlspecialchars($record['first_name'] . ' ' . $record['last_name']); ?> (<?php echo htmlspecialchars($record['employee_code']); ?>)</div>
-            <div><strong>Clock In:</strong> <?php echo htmlspecialchars(fmt_time($record['clock_in'])); ?></div>
-            <div><strong>Clock Out:</strong> <?php echo htmlspecialchars(fmt_time($record['clock_out'])); ?></div>
+            <div><strong>Sign-In:</strong> <?php echo htmlspecialchars(fmt_time($record['clock_in'])); ?></div>
+            <div><strong>Sign-Out:</strong> <?php echo htmlspecialchars(fmt_time($record['clock_out'])); ?></div>
             <div><strong>Total Hours:</strong> <?php echo number_format(floatval($record['total_hours']), 2); ?>h</div>
             <div><strong>Status:</strong> <?php echo htmlspecialchars($record['status']); ?></div>
         </div>

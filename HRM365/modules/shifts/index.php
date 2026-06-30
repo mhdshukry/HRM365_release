@@ -9,6 +9,18 @@ if (!in_array($currentUser['role'], ['admin', 'HR'])) {
 $stmt = $pdo->query("SELECT * FROM shifts ORDER BY name ASC");
 $shifts = $stmt->fetchAll();
 
+$scheduleRows = $pdo->query("
+    SELECT sw.*, s.name AS shift_name
+    FROM shift_weekly_schedules sw
+    JOIN shifts s ON sw.shift_id = s.id
+    ORDER BY sw.shift_id ASC, sw.weekday ASC
+")->fetchAll();
+$weeklySchedules = [];
+foreach ($scheduleRows as $row) {
+    $weeklySchedules[intval($row['shift_id'])][intval($row['weekday'])] = $row;
+}
+$dayLabels = [1 => 'Mon', 2 => 'Tue', 3 => 'Wed', 4 => 'Thu', 5 => 'Fri', 6 => 'Sat', 7 => 'Sun'];
+
 include '../../includes/header.php'; 
 ?>
 
@@ -22,13 +34,45 @@ include '../../includes/header.php';
     </a>
 </div>
 
+<?php if (!empty($_GET['success'])): ?>
+    <div class="card" style="margin-bottom: 1rem; border-left: 4px solid var(--accent-success);">
+        <strong style="color: var(--accent-success);">Success.</strong>
+        <span style="color: var(--text-secondary); margin-left: 0.35rem;">
+            <?php
+            $successMessages = [
+                'shift_deleted' => 'Shift deleted successfully.',
+                'shift_updated' => 'Shift updated successfully.',
+                'shift_created' => 'Shift created successfully.',
+                'status_updated' => 'Shift status updated successfully.',
+            ];
+            echo htmlspecialchars($successMessages[$_GET['success']] ?? 'Shift action completed.');
+            ?>
+        </span>
+    </div>
+<?php endif; ?>
+
+<?php if (!empty($_GET['error'])): ?>
+    <div class="card" style="margin-bottom: 1rem; border-left: 4px solid var(--accent-danger);">
+        <strong style="color: var(--accent-danger);">Shift action failed.</strong>
+        <span style="color: var(--text-secondary); margin-left: 0.35rem;">
+            <?php
+            $errorMessages = [
+                'shift_not_found' => 'Shift not found.',
+                'delete_failed' => 'Could not delete the shift.',
+            ];
+            echo htmlspecialchars($errorMessages[$_GET['error']] ?? 'Could not complete the shift action.');
+            ?>
+        </span>
+    </div>
+<?php endif; ?>
+
 <div class="card">
     <div class="table-container">
         <table class="table">
             <thead>
                 <tr>
                     <th>Shift Configuration</th>
-                    <th>Working Hours</th>
+                    <th>Weekly Schedule</th>
                     <th>Tolerances</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -49,8 +93,20 @@ include '../../includes/header.php';
                         <div style="font-size: 0.75rem; color: var(--text-muted);"><?php echo htmlspecialchars(substr($s['description'], 0, 50)); ?></div>
                     </td>
                     <td>
-                        <div style="font-weight: 600; color: var(--text-primary);">
-                            <?php echo date('h:i A', strtotime($s['start_time'])); ?> - <?php echo date('h:i A', strtotime($s['end_time'])); ?>
+                        <div style="display: grid; gap: 0.25rem;">
+                            <?php foreach ($dayLabels as $dayNumber => $dayLabel): ?>
+                                <?php $day = $weeklySchedules[intval($s['id'])][$dayNumber] ?? null; ?>
+                                <div style="font-size: 0.82rem; color: var(--text-secondary); white-space: nowrap;">
+                                    <strong style="display: inline-block; width: 2.2rem; color: var(--text-primary);"><?php echo $dayLabel; ?></strong>
+                                    <?php if ($day && intval($day['is_working']) === 1 && !empty($day['start_time']) && !empty($day['end_time'])): ?>
+                                        <?php echo date('h:i A', strtotime($day['start_time'])); ?> - <?php echo date('h:i A', strtotime($day['end_time'])); ?>
+                                    <?php elseif (!$day && $dayNumber <= 5): ?>
+                                        <?php echo date('h:i A', strtotime($s['start_time'])); ?> - <?php echo date('h:i A', strtotime($s['end_time'])); ?>
+                                    <?php else: ?>
+                                        <span style="color: var(--text-muted);">No shift</span>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
                     </td>
                     <td>

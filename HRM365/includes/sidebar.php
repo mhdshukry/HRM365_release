@@ -4,13 +4,9 @@ require_once __DIR__ . '/avatar.php';
 ?>
 <aside class="sidebar">
     <div class="sidebar-header">
-        <a href="<?php echo app_url('modules/dashboard/index.php'); ?>" class="sidebar-logo">
-            <div class="logo-icon">
-                <i class="fas fa-cube"></i>
-            </div>
-            <div class="logo-text">
-                <span class="logo-brand">HRM<strong>365</strong></span>
-                <span class="logo-tagline">Enterprise HR</span>
+        <a href="<?php echo app_url('modules/dashboard/index.php'); ?>" class="sidebar-logo" style="justify-content: center; padding: 1rem 0;">
+            <div class="logo-icon" style="display: flex; align-items: center; justify-content: center;">
+                <img src="<?php echo app_url('LOGO.png'); ?>" alt="Logo" style="max-width: 140px; height: auto;">
             </div>
         </a>
     </div>
@@ -126,10 +122,14 @@ require_once __DIR__ . '/avatar.php';
             <i class="fas fa-file-invoice-dollar nav-icon"></i>
             <span>Payroll Engine</span>
         </a>
+        <a href="<?php echo app_url('modules/advance_payments/index.php'); ?>" class="nav-item <?php echo strpos($uri, '/modules/advance_payments') !== false ? 'active' : ''; ?>">
+            <i class="fas fa-hand-holding-usd nav-icon"></i>
+            <span>Advance Payments</span>
+        </a>
         <?php endif; ?>
 
         <!-- SYSTEM -->
-        <?php if ($currentUser['role'] === 'admin'): ?>
+        <?php if (in_array($currentUser['role'], ['admin', 'HR'])): ?>
         <div class="nav-section-label">System</div>
         <a href="<?php echo app_url('modules/settings/index.php'); ?>" class="nav-item <?php echo strpos($uri, '/modules/settings') !== false ? 'active' : ''; ?>">
             <i class="fas fa-cog nav-icon"></i>

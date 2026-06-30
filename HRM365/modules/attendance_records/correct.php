@@ -31,7 +31,7 @@ include '../../includes/header.php';
 <div class="page-header">
     <div>
         <h1 class="page-title">Correct Attendance</h1>
-        <div class="page-subtitle">Update clock times and recalculate attendance math.</div>
+        <div class="page-subtitle">Update sign-in/sign-out times and recalculate attendance math.</div>
     </div>
     <a href="index.php?date=<?php echo urlencode($record['date']); ?>" class="btn" style="background: var(--bg-hover); color: var(--text-primary);">
         <i class="fas fa-arrow-left"></i> Back
@@ -49,11 +49,11 @@ include '../../includes/header.php';
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;" class="mb-4">
             <div>
-                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Clock In</label>
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Sign-In</label>
                 <input type="datetime-local" name="clock_in" required value="<?php echo $record['clock_in'] ? htmlspecialchars(date('Y-m-d\TH:i', strtotime($record['clock_in']))) : ''; ?>" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none; color-scheme: light;">
             </div>
             <div>
-                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Clock Out</label>
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Sign-Out</label>
                 <input type="datetime-local" name="clock_out" required value="<?php echo $record['clock_out'] ? htmlspecialchars(date('Y-m-d\TH:i', strtotime($record['clock_out']))) : ''; ?>" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none; color-scheme: light;">
             </div>
         </div>

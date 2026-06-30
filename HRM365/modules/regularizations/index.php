@@ -53,8 +53,8 @@ include '../../includes/header.php';
                 <tr>
                     <th>Employee</th>
                     <th>Date</th>
-                    <th style="text-align: center;">Original Timeline</th>
-                    <th style="text-align: center;">Requested Timeline</th>
+                    <th style="text-align: center;">Original Sign-In / Sign-Out</th>
+                    <th style="text-align: center;">Requested Sign-In / Sign-Out</th>
                     <th>Reason</th>
                     <th>Status</th>
                     <th>Actions</th>

@@ -11,6 +11,7 @@ $year_filter = isset($_GET['year']) ? intval($_GET['year']) : date('Y');
 $employee_filter = trim($_GET['employee'] ?? '');
 $leave_type_filter = intval($_GET['leave_type_id'] ?? 0);
 $department_filter = trim($_GET['department'] ?? 'all');
+$branch_filter = intval($_GET['branch_id'] ?? 0);
 $balance_filter = $_GET['balance_status'] ?? 'all';
 
 if (!in_array($balance_filter, ['all', 'available', 'zero', 'negative'], true)) {
@@ -49,8 +50,14 @@ if (in_array($currentUser['role'], ['admin', 'HR'], true) && $department_filter 
 
 $leaveTypes = $pdo->query("SELECT id, name FROM leave_types WHERE status = 'Active' ORDER BY name ASC")->fetchAll();
 $departments = [];
+$branches = [];
 if (in_array($currentUser['role'], ['admin', 'HR'], true)) {
     $departments = $pdo->query("SELECT DISTINCT department FROM employees WHERE department IS NOT NULL AND department != '' ORDER BY department ASC")->fetchAll(PDO::FETCH_COLUMN);
+    $branches = $pdo->query("SELECT id, name FROM branches WHERE status = 'Active' ORDER BY name ASC")->fetchAll();
+    if ($branch_filter > 0) {
+        $filterSql .= " AND e.branch_id = ?";
+        $filterParams[] = $branch_filter;
+    }
 }
 
 // Fetch the central ledger
@@ -134,7 +141,7 @@ include '../../includes/header.php';
 <div class="card leave-ledger-filter-card">
     <form action="" method="GET" class="leave-ledger-filter-form">
         <div>
-            <label>Fiscal Year</label>
+            <label>Year</label>
             <select name="year">
                 <?php for($y = date('Y') - 1; $y <= date('Y') + 1; $y++): ?>
                     <option value="<?php echo $y; ?>" <?php echo $y === $year_filter ? 'selected' : ''; ?>><?php echo $y; ?></option>
@@ -150,6 +157,18 @@ include '../../includes/header.php';
         <?php endif; ?>
 
         <?php if (in_array($currentUser['role'], ['admin', 'HR'], true)): ?>
+            <div>
+                <label>Branch</label>
+                <select name="branch_id">
+                    <option value="0">All Branches</option>
+                    <?php foreach ($branches as $branch): ?>
+                        <option value="<?php echo intval($branch['id']); ?>" <?php echo $branch_filter === intval($branch['id']) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($branch['name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
             <div>
                 <label>Department</label>
                 <select name="department">

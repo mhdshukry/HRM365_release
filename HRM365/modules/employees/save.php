@@ -15,13 +15,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $last_name = trim($_POST['last_name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
+    $nic_number = trim($_POST['nic_number'] ?? '');
     $date_of_birth = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
     $gender = !empty($_POST['gender']) ? $_POST['gender'] : null;
     $address = trim($_POST['address'] ?? '');
 
     // 2. Employment
-    $employee_code = trim($_POST['employee_code'] ?? '');
-    $biometric_user_id = trim($_POST['biometric_user_id'] ?? '');
+    $employee_id_number = trim($_POST['employee_code'] ?? '');
     $branch_id = !empty($_POST['branch_id']) ? intval($_POST['branch_id']) : null;
     $department = trim($_POST['department'] ?? '');
     $designation = trim($_POST['designation'] ?? '');
@@ -30,10 +30,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $base_salary = !empty($_POST['base_salary']) ? floatval($_POST['base_salary']) : 0.00;
     $shift_id = !empty($_POST['shift_id']) ? intval($_POST['shift_id']) : null;
     $attendance_policy_id = !empty($_POST['attendance_policy_id']) ? intval($_POST['attendance_policy_id']) : null;
-    $status = in_array(($_POST['status'] ?? 'Active'), ['Active', 'On Leave', 'Terminated'], true) ? $_POST['status'] : 'Active';
+    $status = in_array(($_POST['status'] ?? 'Active'), ['Active', 'On Leave', 'Resigned', 'Terminated'], true) ? $_POST['status'] : 'Active';
+    $resignation_termination_date = !empty($_POST['resignation_termination_date']) ? $_POST['resignation_termination_date'] : null;
 
-    if (empty($biometric_user_id)) {
-        $biometric_user_id = null;
+    if ($employee_id_number === '' || !ctype_digit($employee_id_number)) {
+        die("Employee ID / Biometric ID must contain numbers only after EMP-.");
+    }
+    $employee_code = 'EMP-' . $employee_id_number;
+    $biometric_user_id = $employee_code;
+
+    if (!in_array($status, ['Resigned', 'Terminated'], true)) {
+        $resignation_termination_date = null;
     }
 
     // 3. Banking
@@ -110,28 +117,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $stmt = $pdo->prepare("
                 UPDATE employees
-                SET employee_code = ?, first_name = ?, last_name = ?, email = ?, phone = ?, date_of_birth = ?, gender = ?, address = ?,
+                SET employee_code = ?, first_name = ?, last_name = ?, email = ?, phone = ?, nic_number = ?, date_of_birth = ?, gender = ?, address = ?,
                     branch_id = ?, department = ?, designation = ?, hire_date = ?, employment_type = ?, base_salary = ?,
-                    biometric_user_id = ?, profile_photo = ?, shift_id = ?, attendance_policy_id = ?, status = ?
+                    biometric_user_id = ?, profile_photo = ?, shift_id = ?, attendance_policy_id = ?, status = ?, resignation_termination_date = ?
                 WHERE id = ?
             ");
             $stmt->execute([
-                $employee_code, $first_name, $last_name, $email, $phone, $date_of_birth, $gender, $address,
+                $employee_code, $first_name, $last_name, $email, $phone, $nic_number, $date_of_birth, $gender, $address,
                 $branch_id, $department, $designation, $hire_date, $employment_type, $base_salary,
-                $biometric_user_id, $profile_photo_path, $shift_id, $attendance_policy_id, $status, $employee_id
+                $biometric_user_id, $profile_photo_path, $shift_id, $attendance_policy_id, $status, $resignation_termination_date, $employee_id
             ]);
         } else {
             $stmt = $pdo->prepare("
                 INSERT INTO employees 
-                (employee_code, first_name, last_name, email, phone, date_of_birth, gender, address, 
+                (employee_code, first_name, last_name, email, phone, nic_number, date_of_birth, gender, address, 
                  branch_id, department, designation, hire_date, employment_type, base_salary, biometric_user_id, profile_photo,
-                 shift_id, attendance_policy_id, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 shift_id, attendance_policy_id, status, resignation_termination_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->execute([
-                $employee_code, $first_name, $last_name, $email, $phone, $date_of_birth, $gender, $address,
+                $employee_code, $first_name, $last_name, $email, $phone, $nic_number, $date_of_birth, $gender, $address,
                 $branch_id, $department, $designation, $hire_date, $employment_type, $base_salary, $biometric_user_id, $profile_photo_path,
-                $shift_id, $attendance_policy_id, $status
+                $shift_id, $attendance_policy_id, $status, $resignation_termination_date
             ]);
 
             $employee_id = intval($pdo->lastInsertId());

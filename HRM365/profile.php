@@ -8,7 +8,9 @@ $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $full_name = trim($_POST['full_name']);
+    $current_password = $_POST['current_password'] ?? '';
     $new_password = $_POST['new_password'];
+    $confirm_password = $_POST['confirm_password'] ?? '';
     $profile_photo_path = null;
 
     try {
@@ -60,6 +62,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (!empty($new_password)) {
+            $passwordStmt = $pdo->prepare("SELECT password FROM users WHERE id = ?");
+            $passwordStmt->execute([$currentUser['id']]);
+            $currentHash = $passwordStmt->fetchColumn();
+            if (!$currentHash || !password_verify($current_password, $currentHash)) {
+                throw new RuntimeException("Current password is incorrect.");
+            }
+            if (strlen($new_password) < 8) {
+                throw new RuntimeException("New password must be at least 8 characters.");
+            }
+            if ($new_password !== $confirm_password) {
+                throw new RuntimeException("New password confirmation does not match.");
+            }
+
             $hashed = password_hash($new_password, PASSWORD_DEFAULT);
             $stmt = $pdo->prepare("UPDATE users SET full_name = ?, password = ? WHERE id = ?");
             $stmt->execute([$full_name, $hashed, $currentUser['id']]);
@@ -139,8 +154,19 @@ include 'includes/header.php';
         </div>
 
         <div class="mb-4">
-            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Reset Password (leave blank to keep current)</label>
-            <input type="password" name="new_password" placeholder="Enter new password" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Current Password</label>
+            <input type="password" name="current_password" placeholder="Required only when changing password" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;" class="mb-4">
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">New Password</label>
+                <input type="password" name="new_password" placeholder="Leave blank to keep current" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Confirm New Password</label>
+                <input type="password" name="confirm_password" placeholder="Repeat new password" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+            </div>
         </div>
 
         <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fas fa-save"></i> Save Profile</button>

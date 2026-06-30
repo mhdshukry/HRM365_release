@@ -38,6 +38,22 @@ include '../../includes/header.php';
     </a>
 </div>
 
+<?php if (!empty($_GET['error'])): ?>
+    <div class="card" style="max-width: 600px; margin: 0 auto 1rem; border-left: 4px solid var(--accent-danger);">
+        <strong style="color: var(--accent-danger);">Branch not deleted.</strong>
+        <div style="color: var(--text-secondary); margin-top: 0.35rem;">
+            <?php
+            $errorMessages = [
+                'branch_has_employees' => 'This branch still has employees assigned. Move or delete those employees first.',
+                'branch_not_found' => 'Branch not found.',
+                'delete_failed' => 'Could not delete the branch. Please try again.',
+            ];
+            echo htmlspecialchars($errorMessages[$_GET['error']] ?? 'Could not delete the branch.');
+            ?>
+        </div>
+    </div>
+<?php endif; ?>
+
 <div class="card" style="max-width: 600px; margin: 0 auto;">
     <form action="save.php" method="POST">
         <input type="hidden" name="id" value="<?php echo intval($branch['id']); ?>">
@@ -64,6 +80,11 @@ include '../../includes/header.php';
         </div>
 
         <div class="mb-4">
+            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Biometric Machine Serial Number</label>
+            <input type="text" name="biometric_terminal_sn" value="<?php echo htmlspecialchars($branch['biometric_terminal_sn'] ?? ''); ?>" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+        </div>
+
+        <div class="mb-4">
             <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Operational Status</label>
             <select name="status" required style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
                 <option value="Active" <?php echo selected_status($branch['status'], 'Active'); ?>>Active</option>
@@ -73,6 +94,15 @@ include '../../includes/header.php';
 
         <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fas fa-save"></i> Update Branch</button>
     </form>
+
+    <div style="margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color);">
+        <form action="delete.php" method="POST" onsubmit="return confirm('Delete this branch permanently? This cannot be undone.');">
+            <input type="hidden" name="id" value="<?php echo intval($branch['id']); ?>">
+            <button type="submit" class="btn" style="width: 100%; background: rgba(239, 68, 68, 0.12); color: var(--accent-danger); border: 1px solid rgba(239, 68, 68, 0.28);">
+                <i class="fas fa-trash-alt"></i> Delete Branch
+            </button>
+        </form>
+    </div>
 </div>
 
 <?php include '../../includes/footer.php'; ?>

@@ -94,11 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="login-card">
     <div style="text-align: center; margin-bottom: 2rem;">
-        <div style="width: 50px; height: 50px; border-radius: 14px; background: linear-gradient(135deg, #2563eb, #7c3aed); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.3rem; margin: 0 auto 1rem; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);">
-            <i class="fas fa-cube"></i>
-        </div>
-        <h2 style="font-size: 1.5rem; letter-spacing: -0.025em;">Welcome to HRM365</h2>
-        <p style="color: var(--text-secondary); font-size: 0.9rem;">Sign in to access your dashboard</p>
+        <img src="LOGO.png" alt="Logo" style="max-width: 180px; height: auto; background: none;">
     </div>
 
     <?php if ($error): ?>
@@ -124,6 +120,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Sign In <i class="fas fa-arrow-right" style="margin-left: 0.5rem;"></i>
         </button>
     </form>
+</div>
+
+<div style="position: absolute; bottom: 20px; width: 100%; text-align: center; font-size: 0.85rem; color: #6b7280;">
+    &copy; <?php echo date('Y'); ?> <strong style="color: #ea580c;">HRM365</strong>. All rights reserved. <span style="margin: 0 0.75rem; color: #d1d5db;">|</span> Developed by &lt;/&gt; <a href="https://lushanth.com/" target="_blank" style="color: #ea580c; text-decoration: none; font-weight: bold;">Lushanth Pvt Ltd</a>
 </div>
 
 </body>

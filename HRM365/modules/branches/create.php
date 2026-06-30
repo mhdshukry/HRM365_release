@@ -43,6 +43,11 @@ include '../../includes/header.php';
         </div>
 
         <div class="mb-4">
+            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Biometric Machine Serial Number</label>
+            <input type="text" name="biometric_terminal_sn" placeholder="Terminal SN from the fingerprint machine" style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+        </div>
+
+        <div class="mb-4">
             <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">Operational Status</label>
             <select name="status" required style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
                 <option value="Active">Active</option>
